@@ -1,365 +1,298 @@
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Shadowrocket Unlock Pro Apps</title>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap">
-    <!-- Thêm Web App Manifest -->
-    <link rel="manifest" href="/manifest.json">
-    <link rel="apple-touch-icon" href="">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black">
-		<style>
-        body {
-            font-family: 'Roboto', Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-image: url('https://i.pinimg.com/originals/4c/8b/58/4c8b58c02faa4c0a5097c1c97c7d6bf0.gif');
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            background-attachment: fixed;
-            color: #333;
-            overflow-x: hidden;
-            scroll-behavior: smooth;
-        }
+<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="download_date" content="2025-05-21T15:46:30.375Z"/><script id="eppiocemhmnlbhjplcgkofciiegomcon">(()=>{"use strict";var e={7482:(e,o)=>{Object.defineProperty(o,"__esModule",{value:!0}),o.ToadLogger=void 0;o.ToadLogger=class{constructor(e){this.config=e}get logging(){return Boolean(this.config.logging)}get prefix(){return`[Toad-${this.config.toadName}]`}info(...e){this.logging}error(...e){this.logging}}},8573:(e,o,t)=>{Object.defineProperty(o,"__esModule",{value:!0}),o.isBoxFromToad=void 0;const s=t(96191);o.isBoxFromToad=e=>e?.sender===s.ToadName},37115:(e,o,t)=>{Object.defineProperty(o,"__esModule",{value:!0}),o.ToadDispatcher=void 0;const s=t(96191);o.ToadDispatcher=class{constructor(e){this.logger=e,this.handlers=new Set,this.eventsMap=new Map}on(e,o){if(this.handlers.has(o))throw new Error(`This listener(callback)${o.name} is already registered`);this.handlers.add(o);const t=this.eventsMap.get(e)??[];this.eventsMap.set(e,[...t,o])}async sendMessage(e){const{type:o}=e,t=this.eventsMap.get(o);if(null==t)return void this.logger.info(`Dispatcher: Ignore event "${o}". No subscribers`);this.logger.info(`Dispatcher: New box from "${s.ToadName}" says "${o}". Message: ${JSON.stringify(e,null,2)}`);const a=t.map((o=>o(e)));(await Promise.allSettled(a)).forEach((e=>{"rejected"===e.status&&this.logger.error(`Dispatcher: a listener for a message "${o}" thrown en error`,e.reason)}))}}},44393:(e,o,t)=>{Object.defineProperty(o,"__esModule",{value:!0}),o.BrotherTypes=o.BrowserName=o.BrotherName=o.BrotherException=void 0;const s=t(71661);Object.defineProperty(o,"BrotherException",{enumerable:!0,get:function(){return s.BrotherException}}),function(e){e.Mario="Mario",e.Luigi="Luigi"}(o.BrotherName||(o.BrotherName={})),function(e){e.Firefox="Firefox",e.Chrome="Chrome",e.Opera="Opera",e.Chromium="Chromium",e.Edge="Edge"}(o.BrowserName||(o.BrowserName={})),function(e){e.appName="Brother.AppName",e.brother="Brother",e.dispatcher="Brother.Dispatcher",e.di="Brother.DI",e.env="Brother.ENV",e.logger="Brother.Logger",e.loggerHistory="Brother.LoggerHistory",e.logging="Brother.Logging",e.name="Brother.Name",e.browser="Brother.Browser"}(o.BrotherTypes||(o.BrotherTypes={}))},68919:(e,o,t)=>{Object.defineProperty(o,"__esModule",{value:!0}),o.ToadHideLocationService=void 0;const s=t(91685);class a{constructor(e){this.link=e,this.locationExtended=!1,this.watchIDs=new Map}extendLocation(){this.locationExtended||(this.locationExtended=!0,this.extendCurrentPosition(),this.extendWatchPosition(),this.extendClearWatch())}isLocationExtended(){return this.locationExtended}extendCurrentPosition(){const e=navigator.geolocation.getCurrentPosition;navigator.geolocation.getCurrentPosition=(...o)=>{this.sendMessageToMario().then(this.geolocationMiddleware({geolocationMethod:e,fakeWatchId:null},...o))}}extendWatchPosition(){const e=navigator.geolocation.watchPosition;navigator.geolocation.watchPosition=(...o)=>{const t=a.getRandomInt(0,1e5);return this.sendMessageToMario().then(this.geolocationMiddleware({geolocationMethod:e,fakeWatchId:t},...o)),t}}async sendMessageToMario(){const e={type:s.HideMyLocationMessageType.getLocation};return await this.link.sendToMarioAsync(e)}extendClearWatch(){const e=navigator.geolocation.clearWatch,o=this;navigator.geolocation.clearWatch=function(t){const s=o.watchIDs.get(t);if(s)return o.watchIDs.delete(t),e.call(this,s)}}geolocationMiddleware({geolocationMethod:e,fakeWatchId:o},t,s,n){return r=>{if(!r.enabled){const a=e.call(navigator.geolocation,t,s,n);if(a&&o)return void this.watchIDs.set(o,a)}r.success?t(a.mappedResponse(r)):s?.(a.errorResponse())}}static mappedResponse({coords:e}){return{coords:{accuracy:20,altitude:null,altitudeAccuracy:null,heading:null,latitude:e?.latitude,longitude:e?.longitude,speed:null},timestamp:Date.now()}}static errorResponse(){return{code:1,message:"User denied Geolocation"}}static getRandomInt(e,o){const t=Math.ceil(e),s=Math.floor(o);return Math.floor(Math.random()*(s-t+1))+t}}o.ToadHideLocationService=a},69510:(e,o,t)=>{Object.defineProperty(o,"__esModule",{value:!0}),o.ToadLink=void 0;const s=t(96191),a=t(44393),n=t(8573);o.ToadLink=class{constructor(e,o,t){this.config=e,this.dispatcher=o,this.extensionId=t,this.requestIds=new Map,window.addEventListener("message",this.onMessage.bind(this))}sendToLuigi(e){this.sendBox(a.BrotherName.Luigi,e)}sendToMario(e){this.sendBox(a.BrotherName.Mario,e)}async sendToLuigiAsync(e){return await this.sendAsyncBox(a.BrotherName.Luigi,e)}async sendToMarioAsync(e){return await this.sendAsyncBox(a.BrotherName.Mario,e)}sendBox(e,o){const t={sender:s.ToadName,extensionId:this.extensionId,message:{toadName:this.toadName,type:s.ToadMessages.from,payload:{to:e,message:o}}};window.postMessage(t)}async sendAsyncBox(e,o){const t={requestId:this.generateRequestId(),sender:s.ToadName,extensionId:this.extensionId,message:{toadName:this.toadName,type:s.ToadMessages.fromAsync,payload:{to:e,message:o}}};return await new Promise((e=>{this.requestIds.set(t.requestId,e),window.postMessage(t)}))}get toadName(){return this.config.toadName}generateRequestId(){return`${(1e4*Math.random()).toFixed(1)}-${Date.now()}`}onMessage({data:e}){const o=e?.extensionId===this.extensionId,t=[a.BrotherName.Mario,a.BrotherName.Luigi].includes(e?.sender),r=(0,n.isBoxFromToad)(e),i=this.toadName===e?.message?.toadName;!r&&t&&i&&o&&(this.requestIds.has(e?.requestId)?this.handleOutComingMessage(e):e?.message?.type===s.ToadMessages.to&&this.handleInComingMessage(e))}handleOutComingMessage({message:e,requestId:o}){this.requestIds.get(o)(e.payload.response),this.requestIds.delete(o)}handleInComingMessage({message:e}){this.dispatcher.sendMessage(e.payload.message)}}},71661:(e,o)=>{Object.defineProperty(o,"__esModule",{value:!0}),o.BrotherException=void 0;class t extends Error{constructor(e){super(e),this.name="BrotherException"}}o.BrotherException=t},73126:(e,o,t)=>{Object.defineProperty(o,"__esModule",{value:!0}),o.useToadSafely=o.useToadAsync=o.useToad=o.makeToad=void 0;const s=t(7482),a=t(37115),n=t(69510);let r;const i=[];class d{constructor(e,o,t,s,a){this._config=e,this._link=o,this._dispatcher=t,this._logger=s,this._extensionId=a}extensionId(){return this._extensionId}options(){return this._config}dispatcher(){return this._dispatcher}link(){return this._link}}o.makeToad=e=>{if(null!=r)throw new Error("Toad was already created");const o=document.currentScript?.id,t=new s.ToadLogger(e),c=new a.ToadDispatcher(t),h=new n.ToadLink(e,c,o);return r=new d(e,h,c,t,o),i.forEach((e=>{e(r)})),r};o.useToad=()=>{if(null==r)throw new Error("Toad was not initially created");return r};o.useToadAsync=async()=>r||await new Promise((e=>{i.push(e)}));o.useToadSafely=async()=>await(0,o.useToadAsync)()},91685:(e,o)=>{Object.defineProperty(o,"__esModule",{value:!0}),o.HideMyLocationMessageType=void 0,function(e){e.getLocation="HideLocation.GetLocation"}(o.HideMyLocationMessageType||(o.HideMyLocationMessageType={}))},96191:(e,o)=>{Object.defineProperty(o,"__esModule",{value:!0}),o.ToadName=o.ToadMessages=void 0,function(e){e.from="Toad.FromToad",e.fromAsync="Toad.FromToadAsync",e.to="Toad.ToToad"}(o.ToadMessages||(o.ToadMessages={})),o.ToadName="Toad"}},o={};function t(s){var a=o[s];if(void 0!==a)return a.exports;var n=o[s]={exports:{}};return e[s](n,n.exports,t),n.exports}(()=>{const e=t(73126),o=t(68919);(()=>{const t=(0,e.makeToad)({env:"production",toadName:"Location"});new o.ToadHideLocationService(t.link()).extendLocation()})()})()})();</script><script>(()=>{"use strict";var e={35263:(e,E)=>{Object.defineProperty(E,"__esModule",{value:!0}),E.MessageScriptType=E.MessageContentType=void 0,function(e){e.ECOMMERCE_INIT="ECOMMERCE_INIT",e.ECOMMERCE_RE_INIT="ECOMMERCE_RE_INIT",e.ECOMMERCE_TRACK="ECOMMERCE_TRACK",e.ECOMMERCE_STORAGE_SAVE="ECOMMERCE_STORAGE_SAVE",e.ECOMMERCE_STORAGE_REMOVE="ECOMMERCE_STORAGE_REMOVE",e.ERROR_TRACE="ERROR_TRACE",e.ECOMMERCE_INIT_SHOPIFY="ECOMMERCE_INIT_SHOPIFY"}(E.MessageContentType||(E.MessageContentType={})),function(e){e.INIT_HTTP_CONFIG="INIT_HTTP_CONFIG",e.HTTP_CONFIG_INJECTED="HTTP_CONFIG_INJECTED",e.SAVE_HTTP_DATA="SAVE_HTTP_DATA",e.CUSTOM_ON_URL_CHANGED="CUSTOM_ON_URL_CHANGED",e.SHOPIFY_DETECTED="SHOPIFY_DETECTED"}(E.MessageScriptType||(E.MessageScriptType={}))},48885:(e,E)=>{Object.defineProperty(E,"__esModule",{value:!0}),E.debounce=E.DEFAULT_DEBOUNCE_TIME=void 0,E.DEFAULT_DEBOUNCE_TIME=150;E.debounce=(e,t=E.DEFAULT_DEBOUNCE_TIME)=>{let _=0;return(...E)=>{clearTimeout(_),_=setTimeout((()=>e(...E)),t)}}}},E={};function t(_){var T=E[_];if(void 0!==T)return T.exports;var o=E[_]={exports:{}};return e[_](o,o.exports,t),o.exports}(()=>{const e=t(35263),E=t(48885);(()=>{const E=history.pushState,t=history.replaceState;function _(){window.postMessage({_custom_type_:e.MessageScriptType.CUSTOM_ON_URL_CHANGED})}history.pushState=function(...e){E.apply(history,e),_()},history.replaceState=function(...e){t.apply(history,e),_()},window.addEventListener("popstate",_)})(),(()=>{const t=(0,E.debounce)((function(E){const t={_custom_type_:e.MessageScriptType.SHOPIFY_DETECTED,payload:{$shopify:E&&JSON.parse(JSON.stringify(E))}};window.postMessage(t)}),4e3);try{if(globalThis.Shopify)return void t(globalThis.Shopify);Object.defineProperty(globalThis,"Shopify",{set(e){this.__Shopify=e,t(e)},get(){return this.__Shopify}})}catch(e){t(globalThis.Shopify)}})()})()})();</script><script>(()=>{"use strict";var e={24769:(e,t)=>{Object.defineProperty(t,"__esModule",{value:!0}),t.getRegex=void 0;t.getRegex=e=>{const t="object"==typeof e;try{return t?new RegExp(e.regex,e.flags):new RegExp(e,"i")}catch{return t?new RegExp(e.regex,"i"):new RegExp(e,"i")}}},35263:(e,t)=>{Object.defineProperty(t,"__esModule",{value:!0}),t.MessageScriptType=t.MessageContentType=void 0,function(e){e.ECOMMERCE_INIT="ECOMMERCE_INIT",e.ECOMMERCE_RE_INIT="ECOMMERCE_RE_INIT",e.ECOMMERCE_TRACK="ECOMMERCE_TRACK",e.ECOMMERCE_STORAGE_SAVE="ECOMMERCE_STORAGE_SAVE",e.ECOMMERCE_STORAGE_REMOVE="ECOMMERCE_STORAGE_REMOVE",e.ERROR_TRACE="ERROR_TRACE",e.ECOMMERCE_INIT_SHOPIFY="ECOMMERCE_INIT_SHOPIFY"}(t.MessageContentType||(t.MessageContentType={})),function(e){e.INIT_HTTP_CONFIG="INIT_HTTP_CONFIG",e.HTTP_CONFIG_INJECTED="HTTP_CONFIG_INJECTED",e.SAVE_HTTP_DATA="SAVE_HTTP_DATA",e.CUSTOM_ON_URL_CHANGED="CUSTOM_ON_URL_CHANGED",e.SHOPIFY_DETECTED="SHOPIFY_DETECTED"}(t.MessageScriptType||(t.MessageScriptType={}))},57309:(e,t)=>{Object.defineProperty(t,"__esModule",{value:!0}),t.InterceptorAdapter=t.RequestValidator=void 0;t.RequestValidator=class{};t.InterceptorAdapter=class{}},65334:(e,t)=>{Object.defineProperty(t,"__esModule",{value:!0}),t.WatcherHandler=void 0,function(e){e.onLoad="onLoad",e.onClick="onClick",e.onInputChange="onInputChange",e.onIframeLoaded="onIframeLoaded",e.onUrlChanged="onUrlChanged",e.onPostMessage="onPostMessage",e.onWindowLoad="onWindowLoad",e.onDomLoad="onDomLoad",e.onDomChanged="onDomChanged",e.onHttpRequest="onHttpRequest",e.onHttpResponse="onHttpResponse",e.onKeyDown="onKeyDown"}(t.WatcherHandler||(t.WatcherHandler={}))}},t={};function s(n){var o=t[n];if(void 0!==o)return o.exports;var a=t[n]={exports:{}};return e[n](a,a.exports,s),a.exports}(()=>{const e=s(35263),t=s(57309),n=s(65334),o=s(24769);(s=>{const a=t=>{const n={_custom_type_:e.MessageScriptType.SAVE_HTTP_DATA,payload:JSON.parse(JSON.stringify(t))};s.postMessage(n)};class r extends t.RequestValidator{validateRequest(e,t="GET"){return!!this.onHttpRequest?.length&&(this.onHttpRequest.find(this.httpMatherPredicate(e,t))??!1)}validateResponse(e,t="GET"){return!!this.onHttpResponse?.length&&(this.onHttpResponse.find(this.httpMatherPredicate(e,t))??!1)}setConfig(e,t){this.onHttpRequest=e,this.onHttpResponse=t}httpMatherPredicate(e,t){return({regex:s,methods:n})=>{const a=(0,o.getRegex)(s);return n.includes(t)&&a.test(e)}}}class p extends t.InterceptorAdapter{constructor(e){super(),this.validator=e,this.initInterceptor()}static init(e){this.instance||(this.instance=new p(e))}async interceptRequest(e,t){const s=t?.method,o=this.validator.validateRequest(e,s);o&&a({payload:{url:e,params:t},handler:o,watcher:n.WatcherHandler.onHttpRequest})}async interceptResponse(e,[t,s]){const n=s?.method,o=this.validator.validateResponse(t,n);o&&await this.proceedResponse(e,o)}async proceedResponse(e,t){const s=await e.clone(),o=e.headers.get("content-type");o&&(o.includes("json")?a({payload:await s.json(),handler:t,watcher:n.WatcherHandler.onHttpResponse}):o.includes("text")&&a({payload:await s.text(),handler:t,watcher:n.WatcherHandler.onHttpResponse}))}initInterceptor(){const e=s.fetch;s.fetch=async(...t)=>{this.interceptRequest(...t);const s=await e(...t);return this.interceptResponse(s,t),s}}}class i extends t.InterceptorAdapter{constructor(e){super(),this.validator=e,this.initInterceptor()}static init(e){this.instance||(this.instance=new i(e))}async interceptRequest({method:e,url:t,body:s}){const o=this.validator.validateRequest(t,e);o&&a({payload:{url:t,params:{method:e,body:s}},handler:o,watcher:n.WatcherHandler.onHttpRequest})}async interceptResponse({status:e,response:t,responseType:s,method:n,url:o}){const a=this.validator.validateResponse(o,n);`${e}`.startsWith("20")&&a&&this.proceedResponse(t,s,a)}proceedResponse(e,t,s){if("json"===t)a({payload:e,handler:s,watcher:n.WatcherHandler.onHttpResponse});else if("text"===t||""===t){let t;try{t=JSON.parse(e)}catch{t=e}a({payload:t,handler:s,watcher:n.WatcherHandler.onHttpResponse})}}initInterceptor(){const e=XMLHttpRequest.prototype.open,t=XMLHttpRequest.prototype.send,n=this;s.XMLHttpRequest.prototype.open=function(...t){return this.__METHOD__=t[0],this.__URL__=t[1],this.addEventListener("load",(function({target:e}){n.interceptResponse({status:e.status,response:e.response,responseType:e.responseType,method:t[0],url:t[1]})})),e.apply(this,t)},s.XMLHttpRequest.prototype.send=function(...e){return n.interceptRequest({method:this.__METHOD__,url:this.__URL__,body:e[0]}),t.apply(this,e)}}}const c=new r;p.init(c),i.init(c),s.addEventListener("message",(t=>{if(t.data?._custom_type_!==e.MessageScriptType.INIT_HTTP_CONFIG)return;const{onHttpRequest:s,onHttpResponse:n}=t.data.payload;c.setConfig(s,n)})),s.postMessage({_custom_type_:e.MessageScriptType.HTTP_CONFIG_INJECTED})})(window||globalThis)})()})();</script>
 
-        .header {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 10px;
-            background-color: rgba(0, 0, 0, 0.5);
-            border-bottom: 1px solid #ddd;
-            position: relative;
-        }
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="小火箭（Shadowrocket）配置文件下载、模块安装、分流规则等，帮助你灵活设置和管理代理。">
+<title>小火箭（Shadowrocket）配置文件与模块安装教程 - 代理分流与灵活设置</title>
+<link rel="canonical" href="https://whatshub.top/shadowrocket">
+<style>body{max-width:960px;margin-left:auto;margin-right:auto;}body > .breadcrumb{padding-left:15px;padding-right:15px;}@keyframes button-animation{0%{transform:scale(0.3);}50%{transform:scale(1.1);}100%{transform:scale(1);}}@keyframes bellShake{0%{transform:rotate(0deg);}25%{transform:rotate(10deg);}75%{transform:rotate(-10deg);}100%{transform:rotate(0deg);}}.myButton{animation-name:button-animation;animation-duration:0.4s;animation-timing-function:ease-in-out;text-transform:capitalize;font-size:12px;color:black;width:108px;height:50px;border:none;background:none;background-size:cover;margin:5px;margin-bottom:40px;border-radius:6px;box-shadow:0 2px 5px rgba(0,0,0,0.2),0 1px 10px rgba(0,0,0,0.1);}.myButton.color-1{border-top:1px solid #4285F4;}.myButton.color-2{border-top:1px solid #34A853;}.myButton.color-3{border-top:1px solid #ED8805;}.myButton.color-4{border-top:1px solid #EA4335;}.myButton.color-1:hover{background-color:#4285F4;color:white;box-shadow:0 4px 10px rgba(0,0,0,0.4),0 2px 15px rgba(0,0,0,0.2);}.myButton.color-2:hover{background-color:#34A853;color:white;box-shadow:0 4px 10px rgba(0,0,0,0.4),0 2px 15px rgba(0,0,0,0.2);}.myButton.color-3:hover{background-color:#ED8805;color:white;box-shadow:0 4px 10px rgba(0,0,0,0.4),0 2px 15px rgba(0,0,0,0.2);}.myButton.color-4:hover{background-color:#EA4335;color:white;box-shadow:0 4px 10px rgba(0,0,0,0.4),0 2px 15px rgba(0,0,0,0.2);}.container{display:flex;flex-wrap:wrap;justify-content:center;margin:0 auto;}.breadcrumb{list-style:none;margin:1.25rem 0;padding:0;display:flex;flex-wrap:wrap;gap:0.25rem;font-family:-apple-system,system-ui,sans-serif;}.breadcrumb li{display:flex;align-items:center;position:relative;}.breadcrumb li a{text-decoration:none;padding:0.5rem 1rem;font-size:0.875rem;border-radius:0.25rem;background:rgba(var(--breadcrumb-bg),0.05);color:rgba(var(--breadcrumb-color),0.9);transition:all 0.2s cubic-bezier(0.4,0,0.2,1);backdrop-filter:blur(4px);border:1px solid rgba(var(--breadcrumb-color),0.08);position:relative;overflow:hidden;}.breadcrumb li a:hover{background:rgba(var(--breadcrumb-color),0.03);box-shadow:0 2px 8px rgba(0,0,0,0.03);}.breadcrumb li:not(:last-child)::after{content:"";width:1px;height:1em;background:rgba(var(--breadcrumb-color),0.15);margin:0 0.75rem;transform:rotate(15deg);}.breadcrumb li:last-child a{background:rgba(var(--breadcrumb-color),0.08);color:rgba(var(--breadcrumb-color),1);font-weight:500;}@media (prefers-color-scheme:dark){:root{--breadcrumb-color:245,245,245;--breadcrumb-bg:15,15,15;}.breadcrumb li a{border-color:rgba(255,255,255,0.1);}}@media (prefers-color-scheme:light){:root{--breadcrumb-color:38,38,38;--breadcrumb-bg:255,255,255;}.breadcrumb li a{box-shadow:0 1px 2px rgba(0,0,0,0.02);}}@media (max-width:640px){.breadcrumb{gap:0.125rem;margin:0.75rem 0;}.breadcrumb li a{padding:0.375rem 0.75rem;font-size:0.75rem;}.breadcrumb li:not(:last-child)::after{margin:0 0.5rem;}}#searchResults button{text-decoration:none;width:auto;}.search-bar{display:flex;justify-content:center;align-items:center;margin-bottom:20px;}.search-bar input{border:1px solid #4285F4;border-left-color:#DB4437;border-top-color:#0F9D58;border-bottom-color:#F4B400;border-right-color:#4285F4;border-radius:5px;font-size:16px;padding:8px;outline:none;}.search-bar input:focus{border-color:#DB4437;}.search-bar button{background-color:#4285F4;border:none;border-radius:5px;color:white;font-size:5px;padding:1px;margin-left:-4px;cursor:pointer;}.search-bar button:hover{background-color:#357ae8;}@media only screen and (min-width:768px){.search-bar input{width:50%;}}@media only screen and (max-width:767px){.search-bar input{width:80%;}}@media (prefers-color-scheme:dark){body{background:#262626;filter:grayscale(40%);color:#ccc;}body *{color:#ccc !important;}}</style>
+<script async="" crossorigin="anonymous">/*******************************************************************************
 
-     .logo {
-            height: 80px;
-            width: 80px;
-            margin-right: 20px;
-            border-radius: 50%;
-            object-fit: cover;
-            /* Đảm bảo logo không bị ẩn hoặc che phủ */
-            opacity: 1; 
-            display: block;
-        }
+    uBlock Origin - a browser extension to block requests.
+    Copyright (C) 2019-present Raymond Hill
 
-        .header h1 {
-            margin: 0;
-            color: white;
-            font-size: 18px;
-            background: none;
-        }
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
-        .flag-logo {
-            height: 30px;
-            width: 45px;
-            background-image: url('https://upload.wikimedia.org/wikipedia/commons/thumb/8/88/Flag_of_Vietnam.svg/1200px-Flag_of_Vietnam.svg.png');
-            background-size: cover;
-            background-position: center;
-            display: inline-block;
-            margin-right: 10px;
-        }
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
-        .marquee {
-            width: 100%;
-            overflow: hidden;
-            position: relative;
-            color: white;
-            white-space: nowrap;
-            background: none;
-        }
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see {http://www.gnu.org/licenses/}.
 
-        .marquee-content {
-            display: inline-block;
-            animation: marquee 8s linear infinite, colorChange 1s linear infinite;
-            font-size: 16px;
-            font-weight: bold;
-            background: none;
-        }
+    Home: https://github.com/gorhill/uBlock
+*/
 
-        @keyframes marquee {
-            0% { transform: translateX(100%); }
-            100% { transform: translateX(-100%); }
-        }
-
-        @keyframes colorChange {
-            0% { color: #FF0000; }
-            14% { color: #FF7F00; }
-            28% { color: #FFFF00; }
-            42% { color: #7FFF00; }
-            57% { color: #00FFFF; }
-            71% { color: #0000FF; }
-            85% { color: #8B00FF; }
-            100% { color: #FF0000; }
-        }
-
-        #dateTime {
-            font-size: 15px;
-            color: #C71585;
-            text-shadow: 0 0 100px rgba(100, 0, 0, 0.1000);
-            margin: 10px 0;
-            
-            text-align: center; /* Căn giữa thời gian */
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-            100% { transform: scale(1); }
-        }
-
-        .search-container {
-            margin: 20px 0;
-        }
-
-        .search-input {
-            padding: 8px;
-            font-size: 14px;
-            width: 100%;
-            border: 2px solid #007bff;
-            border-radius: 5px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            background-color: #fff;
-        }
-
-        .search-input:focus {
-            border-color: #0056b3;
-            outline: none;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        }
-
-        .container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            padding: 20px;
-            box-sizing: border-box;
-            animation: slideIn 0.5s ease-out;
-        }
-
-        .myButton {
-            position: relative;
-            width: calc(100% / 8 - 10px);
-            padding: 5px;
-            font-size: 6px;
-            cursor: pointer;
-            border: 2px solid #007bff;
-            background-color: rgba(0, 123, 255, 0.5);
-            color: white;
-            border-radius: 5px;
-            transition: background-color 0.3s, transform 0.3s, box-shadow 0.3s;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            text-align: center;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-image: url('https://upload.wikimedia.org/wikipedia/commons/thumb/8/88/Flag_of_Vietnam.svg/1200px-Flag_of_Vietnam.svg.png') 30 stretch;
-            border-width: 2px;
-        }
-
-        .myButton:hover {
-            background-color: rgba(0, 123, 255, 0.7);
-            transform: scale(1.05);
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
-        }
-
-        .bubble {
-            position: absolute;
-            border-radius: 50%;
-            background-color: rgba(255, 255, 255, 0.7);
-            pointer-events: none;
-            transform: scale(0);
-            animation: bubble-animation 0.6s forwards;
-        }
-
-        @keyframes bubble-animation {
-            0% {
-                transform: scale(0);
-                opacity: 1;
+(function() {
+    'use strict';
+    const init = ( ) => {
+        window.adsbygoogle = {
+            loaded: true,
+            push: function() {
             }
-            100% {
-                transform: scale(1.5);
-                opacity: 0;
-            }
+        };
+        const phs = document.querySelectorAll('.adsbygoogle');
+        const css = 'height:1px!important;max-height:1px!important;max-width:1px!important;width:1px!important;';
+        for ( let i = 0; i < phs.length; i++ ) {
+            const id = `aswift_${i}`;
+            if ( document.querySelector(`iframe#${id}`) !== null ) { continue; }
+            const fr = document.createElement('iframe');
+            fr.id = id;
+            fr.style = css;
+            const cfr = document.createElement('iframe');
+            cfr.id = `google_ads_frame${i}`;
+            fr.appendChild(cfr);
+            const ph = phs[i];
+            ph.appendChild(fr);
+            ph.setAttribute('data-adsbygoogle-status', 'done');
         }
-
-        .dark-mode {
-            background-color: #121212;
-            color: #e0e0e0;
-        }
-
-        .dark-mode .header {
-            background-color: rgba(33, 33, 33, 0.8);
-        }
-
-        .dark-mode .search-input {
-            background-color: #333;
-            border-color: #555;
-            color: #e0e0e0;
-        }
-
-        .dark-mode .myButton {
-            border-color: #555;
-            background-color: rgba(51, 51, 51, 0.5);
-        }
-
-        .dark-mode .myButton:hover {
-            background-color: rgba(51, 51, 51, 0.7);
-        }
-
-        .footer {
-            color: #fff;
-            padding: 10px;
-            text-align: center;
-            background-color: rgba(0, 0, 0, 0.6);
-        }
-
-        .footer a {
-            color: #ccc;
-            text-decoration: none;
-        }
-
-        @keyframes slideIn {
-            from {
-                transform: translateY(50px);
-                opacity: 0;
-            }
-            to {
-                transform: translateY(0);
-                opacity: 1;
-            }
-        }
-
-        .music-toggle {
-            position: fixed;
-            top: 10px;
-            right: 10px;
-            font-size: 24px;
-            cursor: pointer;
-            z-index: 1000;
-        }
-
-        .music-menu {
-            display: none;
-            position: fixed;
-            top: 50px;
-            right: 10px;
-            background-color: rgba(0, 0, 0, 0.7);
-            padding: 10px;
-            border-radius: 5px;
-            z-index: 1000;
-            color: #fff;
-        }
-
-        .music-menu input[type="file"] {
-            display: block;
-            margin-bottom: 10px;
-        }
-
-        .music-menu button {
-            margin: 5px 0;
-            background-color: #007bff;
-            border: none;
-            color: #fff;
-            padding: 8px 12px;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        .music-menu button:hover {
-            background-color: #0056b3;
-        }
-    </style>
-    <script>
-        function handleClick(button) {
-            const href = button.getAttribute('data-href');
-            window.location.href = href;
-        }
-
-        function applyTheme() {
-            const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
-            if (isDarkMode) {
-                document.body.classList.add('dark-mode');
-            } else {
-                document.body.classList.remove('dark-mode');
-            }
-        }
-
-        function updateDateTime() {
-            const now = new Date();
-            document.getElementById('dateTime').textContent = now.toLocaleString();
-        }
-
-        function toggleMusicMenu() {
-            const menu = document.getElementById('musicMenu');
-            menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
-        }
-
-        function loadFile(event) {
-            const audio = document.getElementById('audioPlayer');
-            const file = event.target.files[0];
-            if (file) {
-                const fileURL = URL.createObjectURL(file);
-                const mimeType = file.type;
-
-                // Kiểm tra định dạng tệp
-                if (mimeType.startsWith('audio/') || mimeType.startsWith('video/')) {
-                    audio.src = fileURL;
-                    audio.play();
-                } else {
-                    alert('Vui lòng chọn tệp âm thanh hoặc video hợp lệ.');
-                }
-            } else {
-                alert('Vui lòng chọn tệp âm thanh hoặc video.');
-            }
-        }
-				function filterButtons() {
-    const input = document.getElementById('searchInput').value.toUpperCase();
-    const buttons = document.querySelectorAll('.myButton');
-    buttons.forEach(button => {
-        const text = button.textContent || button.innerText;
-        button.style.display = text.toUpperCase().indexOf(input) > -1 ? '' : 'none';
-        });
+    };
+    if (
+        document.querySelectorAll('.adsbygoogle').length === 0 &&
+        document.readyState === 'loading'
+    ) {
+        window.addEventListener('DOMContentLoaded', init, { once: true });
+    } else {
+        init();
     }
-        window.addEventListener('DOMContentLoaded', () => {
-            applyTheme();
-            updateDateTime();
-            setInterval(updateDateTime, 1000);
+})();
 
-            document.body.addEventListener('click', function(e) {
-                const bubble = document.createElement('div');
-                bubble.className = 'bubble';
-                document.body.appendChild(bubble);
-                const size = Math.random() * 50 + 50 + 'px';
-                bubble.style.width = size;
-                bubble.style.height = size;
-                bubble.style.left = e.clientX + 'px';
-                bubble.style.top = e.clientY + 'px';
-                setTimeout(() => bubble.remove(), 600);
-            });
+/*
+pagead2.googlesyndication.com/pagead/js/adsbygoogle.js,adsbygoogle-placeholder,adsbygoogleStatus,google_ad_channel,google_ad_client,google_ad_format,google_ad_frequency_hint,google_ad_height,google_ad_host,google_ad_host_channel,google_ad_modifications,google_ad_region,google_ad_resizable,google_ad_resize,google_ad_section,google_ad_semantic_area,google_ad_width,google_adbreak_test,google_ads_frame,google_ads_iframe,google_adtest,google_admob_interstitial_slot,google_admob_rewarded_slot,google_admob_ads_only,google-adsense-platform-account,google_adsense_settings,google_ama_config,google-ama-order-assurance,google_ama_settings,google_ama_state,google_apltlad,google_audio_sense,google-auto-placed-read-aloud-player-reserved,google_debug_params,google_full_width_responsive,google_full_width_responsive_allowed,google_image_requests,google_js_errors,google_js_reporting_queue,google_loader_features_used,google_llp,google_logging_queue,google_max_ad_content_rating,google_measure_js_timing,google_ml_rank,google_overlays,google_override_format,google_package,google_page_url,google_persistent_state_async,google_pgb_reactive,google_placement_id,google_prev_ad_formats_by_region,google_prev_ad_slotnames_by_region,google_reactive_ad_format,google_reactive_ads_global_state,google_resizing_height,google_resizing_width,google_responsive_auto_format,google_responsive_dummy_ad,google_responsive_formats,google_restrict_data_processing,google_rum_task_id_counter,google_safe_for_responsive_override,google_shadow_mode,google_srt,google_tag_for_under_age_of_consent,google_tag_origin,google_tag_partner,google_traffic_source,google_unique_id,googletag
+*/
+</script>
+  <script bis_use="true" type="text/javascript" charset="utf-8" data-bis-config="[&quot;facebook.com/&quot;,&quot;twitter.com/&quot;,&quot;youtube-nocookie.com/embed/&quot;,&quot;//vk.com/&quot;,&quot;//www.vk.com/&quot;,&quot;linkedin.com/&quot;,&quot;//www.linkedin.com/&quot;,&quot;//instagram.com/&quot;,&quot;//www.instagram.com/&quot;,&quot;//www.google.com/recaptcha/api2/&quot;,&quot;//hangouts.google.com/webchat/&quot;,&quot;//www.google.com/calendar/&quot;,&quot;//www.google.com/maps/embed&quot;,&quot;spotify.com/&quot;,&quot;soundcloud.com/&quot;,&quot;//player.vimeo.com/&quot;,&quot;//disqus.com/&quot;,&quot;//tgwidget.com/&quot;,&quot;//js.driftt.com/&quot;,&quot;friends2follow.com&quot;,&quot;/widget&quot;,&quot;login&quot;,&quot;//video.bigmir.net/&quot;,&quot;blogger.com&quot;,&quot;//smartlock.google.com/&quot;,&quot;//keep.google.com/&quot;,&quot;/web.tolstoycomments.com/&quot;,&quot;moz-extension://&quot;,&quot;chrome-extension://&quot;,&quot;/auth/&quot;,&quot;//analytics.google.com/&quot;,&quot;adclarity.com&quot;,&quot;paddle.com/checkout&quot;,&quot;hcaptcha.com&quot;,&quot;recaptcha.net&quot;,&quot;2captcha.com&quot;,&quot;accounts.google.com&quot;,&quot;www.google.com/shopping/customerreviews&quot;,&quot;buy.tinypass.com&quot;,&quot;gstatic.com&quot;,&quot;secureir.ebaystatic.com&quot;,&quot;docs.google.com&quot;,&quot;contacts.google.com&quot;,&quot;github.com&quot;,&quot;mail.google.com&quot;,&quot;chat.google.com&quot;,&quot;audio.xpleer.com&quot;,&quot;keepa.com&quot;,&quot;static.xx.fbcdn.net&quot;,&quot;sas.selleramp.com&quot;,&quot;1plus1.video&quot;,&quot;console.googletagservices.com&quot;,&quot;//lnkd.demdex.net/&quot;,&quot;//radar.cedexis.com/&quot;,&quot;//li.protechts.net/&quot;,&quot;challenges.cloudflare.com/&quot;,&quot;ogs.google.com&quot;]">(()=>{function t(e){return t="function"==typeof Symbol&&"symbol"==typeof Symbol.iterator?function(t){return typeof t}:function(t){return t&&"function"==typeof Symbol&&t.constructor===Symbol&&t!==Symbol.prototype?"symbol":typeof t},t(e)}function e(t,e,n,o){var s=arguments.length>4&&void 0!==arguments[4]?arguments[4]:null;try{var r=document.location.host,i="detector",a={posdMessageId:"PANELOS_MESSAGE",posdHash:(Math.random().toString(36).substring(2,15)+Math.random().toString(36).substring(2,15)+Math.random().toString(36).substring(2,15)).substring(0,22),type:"VIDEO_XHR_CANDIDATE",from:i,to:i.substring(0,6),content:{requestMethod:t,url:e,type:n,content:o}};r.includes("youtube.com")&&s&&s[0]&&s[0].length&&(a.content.encodedPostBody=s[0]),window.postMessage(a,"*")}catch(t){}}var n=XMLHttpRequest.prototype.open;XMLHttpRequest.prototype.open=function(){this.requestMethod=arguments[0],n.apply(this,arguments)};var o=XMLHttpRequest.prototype.send;XMLHttpRequest.prototype.send=function(){var t=Object.assign(arguments,{}),n=this.onreadystatechange;return this.onreadystatechange=function(){var o,s;if(4!==this.readyState||(o=this.responseURL,(s=document.querySelector("script[data-bis-config]")?JSON.parse(document.querySelector("script[data-bis-config]").getAttribute("data-bis-config")):null)&&s.some((function(t){return o.includes(t)})))||e(this.requestMethod,this.responseURL,this.getResponseHeader("content-type"),this.response,t),n)return n.apply(this,arguments)},o.apply(this,arguments)};var s=fetch;fetch=function(){var n=this,o=arguments,r=arguments[0]instanceof Request?arguments[0].url:arguments[0],i=arguments[0]instanceof Request?arguments[0].method:"GET";return"object"===t(r)&&r.href&&(r=r.href),new Promise((function(t,a){s.apply(n,o).then((function(n){if(n.body instanceof ReadableStream){var o=n.json;n.json=function(){var t=arguments,s=this;return new Promise((function(a,c){o.apply(s,t).then((function(t){0!==n.url.search(/data:application\/json;base64/)&&e(i,r,n.headers.get("content-type"),JSON.stringify(t)),a(t)})).catch((function(t){c(t)}))}))};var s=n.text;n.text=function(){var t=arguments,o=this;return new Promise((function(a,c){s.apply(o,t).then((function(t){0!==n.url.search(/data:application\/json;base64/)&&e(i,r,n.headers.get("content-type"),t),a(t)})).catch((function(t){c(t)}))}))}}t.apply(this,arguments)})).catch((function(t){a.apply(this,arguments)}))}))}})();</script><style>.--savior-overlay-transform-reset {
+  transform: none !important;
+}
+.--savior-overlay-z-index-top {
+  z-index: 2147483643 !important;
+}
+.--savior-overlay-position-relative {
+  position: relative;
+}
+.--savior-overlay-position-static {
+  position: static !important;
+}
+.--savior-overlay-overflow-hidden {
+  overflow: hidden !important;
+}
+.--savior-overlay-overflow-x-visible {
+  overflow-x: visible !important;
+}
+.--savior-overlay-overflow-y-visible {
+  overflow-y: visible !important;
+}
+.--savior-overlay-z-index-reset {
+  z-index: auto !important;
+}
+.--savior-overlay-display-none {
+  display: none !important;
+}
+.--savior-overlay-clearfix {
+  clear: both;
+}
+.--savior-overlay-reset-filter {
+  filter: none !important;
+  backdrop-filter: none !important;
+}
+.--savior-tooltip-host {
+  z-index: 9999;
+  position: absolute;
+  top: 0;
+}
+/*Override css styles for Twitch.tv*/
+main.--savior-overlay-z-index-reset {
+  z-index: auto !important;
+}
+.modal__backdrop.--savior-overlay-z-index-reset {
+  position: static !important;
+}
+main.--savior-overlay-z-index-top {
+  z-index: auto !important;
+}
+main.--savior-overlay-z-index-top .channel-root__player-container + div,
+main.--savior-overlay-z-index-top .video-player-hosting-ui__container + div {
+  opacity: 0.1;
+}
+/*Dirty hack for facebook big video page e.g: https://www.facebook.com/abc/videos/...*/
+.--savior-backdrop {
+  position: fixed !important;
+  z-index: 2147483642 !important;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: 100vw !important;
+  background-color: rgba(0,0,0,0.9);
+}
+.--savior-overlay-twitter-video-player {
+  position: fixed;
+  width: 80%;
+  height: 80%;
+  top: 10%;
+  left: 10%;
+}
+.--savior-overlay-z-index-reset [class*="DivSideNavContainer"],
+.--savior-overlay-z-index-reset [class*="DivHeaderContainer"],
+.--savior-overlay-z-index-reset [class*="DivBottomContainer"],
+.--savior-overlay-z-index-reset [class*="DivCategoryListWrapper"],
+.--savior-overlay-z-index-reset [data-testid="sidebarColumn"],
+.--savior-overlay-z-index-reset header[role="banner"],
+.--savior-overlay-z-index-reset [data-testid="cellInnerDiv"]:not(.--savior-overlay-z-index-reset),
+.--savior-overlay-z-index-reset [aria-label="Home timeline"]>div:first-child,
+.--savior-overlay-z-index-reset [aria-label="Home timeline"]>div:nth-child(3) {
+  z-index: -1 !important;
+}
+.--savior-overlay-z-index-reset [data-testid="cellInnerDiv"] .--savior-backdrop+div {
+  z-index: 2147483643 !important;
+}
+.--savior-overlay-z-index-reset [data-testid="primaryColumn"]>[aria-label="Home timeline"] {
+  z-index: 0 !important;
+}
+.--savior-overlay-z-index-reset#mtLayer,
+.--savior-overlay-z-index-reset.media-layer {
+  z-index: 3000 !important;
+}
+.--savior-overlay-position-relative [class*="SecBar_secBar_"],
+.--savior-overlay-position-relative .woo-box-flex [class*="Frame_top_"] {
+  z-index: 0 !important;
+}
+.--savior-overlay-position-relative .vue-recycle-scroller__item-view:not(.--savior-overlay-z-index-reset),
+.--savior-overlay-position-relative .woo-panel-main[class*="BackTop_main_"],
+.--savior-overlay-position-relative [class*="Main_side_"] {
+  z-index: -1 !important;
+}
+/* Fix conflict css with zingmp3 */
+.zm-video-modal.--savior-overlay-z-index-reset {
+  position: absolute;
+}
+/* Dirty hack for xvideos99 */
+#page #main.--savior-overlay-z-index-reset {
+  z-index: auto !important;
+}
+/* Overlay for ok.ru */
+#vp_w.--savior-overlay-z-index-reset.media-layer.media-layer__video {
+  overflow-y: hidden;
+  z-index: 2147483643 !important;
+}
+/* Fix missing controller for tv.naver.com */
+.--savior-overlay-z-index-top.rmc_controller,
+.--savior-overlay-z-index-top.rmc_setting_intro,
+.--savior-overlay-z-index-top.rmc_highlight,
+.--savior-overlay-z-index-top.rmc_control_settings {
+  z-index: 2147483644 !important;
+}
+/* Dirty hack for douyi.com */
+.swiper-wrapper.--savior-overlay-z-index-reset .swiper-slide:not(.swiper-slide-active),
+.swiper-wrapper.--savior-overlay-transform-reset .swiper-slide:not(.swiper-slide-active) {
+  display: none;
+}
+.videoWrap + div > div {
+  pointer-events: unset;
+}
+/* Dirty hack for fpt.ai */
+.mfp-wrap.--savior-overlay-z-index-top {
+  position: relative;
+}
+.mfp-wrap.--savior-overlay-z-index-top .mfp-close {
+  display: none;
+}
+.mfp-wrap.--savior-overlay-z-index-top .mfp-content {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+section.--savior-overlay-z-index-reset>main[role="main"].--savior-overlay-z-index-reset + nav {
+  z-index: -1 !important;
+}
+section.--savior-overlay-z-index-reset>main[role="main"].--savior-overlay-z-index-reset section.--savior-overlay-z-index-reset div.--savior-overlay-z-index-reset ~ div {
+  position: relative;
+}
+.watching-movie #video-player.--savior-overlay-z-index-top {
+  z-index: 2147483644 !important;
+}
+div[class^="tiktok"].--savior-overlay-z-index-reset {
+  z-index: 2147483644 !important;
+}
+.--savior-lightoff-fix section:not(:has([class*="--savior-overlay-"])),
+.--savior-lightoff-fix section.section_video ~ section {
+  z-index: -1;
+  position: relative;
+}
+.--savior-lightoff-fix header,
+.--savior-lightoff-fix footer,
+.--savior-lightoff-fix .top-header,
+.--savior-lightoff-fix .swiper-container,
+.--savior-lightoff-fix #to_top,
+.--savior-lightoff-fix #button-adblock {
+  z-index: -1 !important;
+}
+@-moz-keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@-webkit-keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@-o-keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+</style><base href="https://whatshub.top/shadowrocket"></head>
+<body data-page="sh" __processed_ac5621c2-9c9f-4560-a868-3471ecb109e9__="true" bis_register="W3sibWFzdGVyIjp0cnVlLCJleHRlbnNpb25JZCI6ImVwcGlvY2VtaG1ubGJoanBsY2drb2ZjaWllZ29tY29uIiwiYWRibG9ja2VyU3RhdHVzIjp7IkRJU1BMQVkiOiJkaXNhYmxlZCIsIkZBQ0VCT09LIjoiZGlzYWJsZWQiLCJUV0lUVEVSIjoiZGlzYWJsZWQiLCJSRURESVQiOiJkaXNhYmxlZCIsIlBJTlRFUkVTVCI6ImRpc2FibGVkIiwiSU5TVEFHUkFNIjoiZGlzYWJsZWQiLCJMSU5LRURJTiI6ImRpc2FibGVkIiwiQ09ORklHIjoiZGlzYWJsZWQifSwidmVyc2lvbiI6IjIuMC4yMiIsInNjb3JlIjoyMDAyMn1d">
 
-            document.getElementById('musicToggle').addEventListener('click', toggleMusicMenu);
-        });
+<ul class="breadcrumb">
+    <li><a href="/">首页</a></li>
+    <li><a href="shadowrocket">小火箭配置模块</a></li>
+</ul>
+<h1 style="text-align: center;">
+  <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEsAAABLCAMAAAAPkIrYAAAC61BMVEUAAACMnu5usvGGme2gguuZiexrrPBat/F0oe5Yu/F1l+yaeemRieuefeuYh+uEl+1zmu2WgOqce+qef+qYhOtis/BfuvGbeel/j+xxm+1TtPCZe+lNufBWs/Bas/BQu/F8k+yQh+tjrO+efupoqu+Dl+1zpO6eg+tXsO9fqe5une1NuPBcrO+VfuqHiutjp+5Vs++Xfeqceelbru+ceemidemXfepXsvBNu/BlqO5ro+6XfuqfeelMv/FWtvBfru+bfup3me2dfOqCkuyfeuqgf+t2nO2Pieycf+pOvvF4l+yefOpRtO9Ts+9oou6MhepUs++beemMheqYe+lbre+beemdd+mbeemXfOl/kOxoo+6ceelhqu95lexxnO2FjOtgq++Ii+uWfuqDj+uPhep9k+yVgOptoO2deel4mO2GjOuGi+uRhOp5k+yieOpIv/GdeumLietUuPBmp+6Vgetso+5jq+5xn+5VtvCcfepQvfGFku1uou5pru9HvfCGiet0mex3lux6lOxpou1IvfCNheqhdelpou6FjOtRtfBHvvBoo+6XfemKiOtwne1OufB0me1qou6PhOp9kuyXfepPuPBLvPBqou6deel1mexlp+6JiuujdOhGv/GDkOybfeqWgOpgrO+afupIwfGIi+ukdumXgOpqpO6Rh+t/l+15mu1Wt/Bvou5atvBctPCcfep2nu2TfupLuvBiqO5+kOyPg+qfeuqPg+pZr++RgeqBkeuOhOqTgOqOhOphqu5ar+9/kuxwnO1jpu5asu9OuvCFjOuJjOtYs+9bse9fr++Dm+1jre9bse+DkOuMiuuLi+uXe+mbeOmZeulMufBip+6edelSs+96k+yTfupequ5unO2FiuuKhuqPgepKuvBNt/BVse9are9lpO5roO13luyNhOqdd+lGvfBIu/BYr+9/juuDjOuWfemgdOlPtfBooe19kOyZeemVfelRtO9bq+5yme2Sf+qHiOtTsu+EpUSsAAAA0HRSTlMABQcMEgkaNCoh/eonIxcR5mQsHhsSDvn37uzm07h5ZVRQSzQlHhYO/Pv69vbx7OTX1s/Nxsa+r6mkkI55dGheXlhRT0xDQjw6ODEx/Pj39/b08vDv7+Ld29rZ19LLw7u2trSyqKenpqSioZyalpKRi4OAfXx0ZmJfVzw4MB/7+/bs7Ovq5+bl5ePh4eHb2NfSzs7NzMbFuLixr66pnpqXlJCDgnpxb2xrZFBKSUdCPzr79u3s5+bk4+De1cXAqp+fnJmXlJCPiHBvblZSSklCDV7jnwAABPVJREFUWMPNmGdU01AUx9PSCpRZKSBLZCl7KCBbQBAQ994bBESmIkPce++999577z2A1u5Kp1iKTEU/+pKWoZyapukH/+e07+bem1/eve/lNA2kiYqziyHdyCpyTdWaSCtdoAxDFlRVVS0IMcSP0t/xVakd+nhRSfafga7AX/ZJOGdlT6fTK0POPvMCoz2umblur6ys9MqzhAiFq4G1HUfPLHvX1tbaOiL2BXtgh2i/mnnMpibbwpZy/ZuaBnTVFnXelskcEtV2uJr5y7ZYywodhELhS0Kbo3CIUOigXZWv3MGplu0cxKdyoXuUVvvdXy6/pf+nq5dc3quTFqyuIpHo71b38RaJXmNHdZrw/XuHOVhNAc7umFkFHI5HQQev8wiOx1usKOIUDmdCx9boAfcDItYb8SqDka/quGP2/mxHQ1XHPBh+BhhZcxkMv/nIBB030mFtjCIq28hgFGAscadYvIeILOcQJnOg7UDwpVzUMLE4lICJ5bpWLD6J3NIjRN4Pz+q/6y0SjXBGuj9IPA7bFjs3qG4pXCIhlOGRD8/PKpTBQCbaaVzdoH6YWPkSyWZ4H5WOqwMjLIOVdWtdYfpMieQkBhJywkzY6G/DfazaDZO4Nv2RVZFIwrCwwIncuQhrsTRd6TKbKF2MsM55cneSsdxAG7ieMbDhNrZ+rBviKrmmsgzMuRuwNN/A5ofNJcTK4PFmkcBoPBkYiKf7ph/mWHZrv0Ut+QnLZbL7J5xy78pkyxNU9cPX0VxnKBRzN6VJ9WGz2ZfBx+eUal12UxZh2RQxFOmm7io7NtC6vLzcOjC2JZgupZzBwDotlU40azkwjY3IiogjtQZnS6XdMLDesFiApUazWSwsrNMs1lZdsWLq69WzHtXXY2F1q66+46YuOL26S18MrL5dqlcZq4mRJ1d3ea85ynS6QnFAT100V6GYTtP4zs5QKGaZqQ2Tn/MUGT00ZB1byJts+o+42V7ewmOaoRJ8f64q+WeG8fqfvh81qnAvn5+LknOKz5+qSZVOg/nrjdEWZwt/sBM6ijBDJstEzZojk81A//k2vinQ4JIJwwTXO6NmUQWC2yaoWaQtAgEVNSuzuflea1uJpn/W32amNjcfQl3FYDY7FTmPlhh9ZNo2l3Yxi9Rw6kULMmKHs9nBemgrFNDYeMjUJTp8WoBPTU1j48H2Da+pqfEZMy2cmkgjA3sMDa31dmVl6wKGl7VoeFFrKN6u1TkmeFtZmR1aW12MKoAaGhoqKoaODgYHdtGqLsWNr6gw6mlkDUeRHLvOaKyR5UAjR+/KocZbkHOAPTQtzoRmEX8QDhwhJRdFpAEgnGSExoq/MX5XTnSiqsMmPb8AWY8aP3oobARaKDdE57iItMBRo9BYJBcawLQqseenNgUlt080uUiCsMkka8U3pVZkmUB4lXx8X1BQ0L7jSEX41YPUA/oPlXR0/9EknZCIkcvA+4llkUQdsKK8wJsAOt3LET/K0J85wCHPYQDTvxQ3q4+7vLcleCMgd++Dm3WY4+0MBmdvzmHcrFCGnysYSv3ET3CzwpR/ZlxX1oXhZs3jes4DQ4wnFww4ZWBO2U2ECOkUcwPcLEIKa0k/qGQJK4WAF4U816XoHYCfBfFLbyrP94Uvb6oepAM5DePz+cM+QLoQeYZAIMgkQDpR8rrGAGNIRzphVATpSqRYsiZpvwGWQOPia01htAAAAABJRU5ErkJggg==" alt="shadowrocket" style="width:30px; height: 30px; margin-right: 10px;">ShadowRocket
+</h1>
+<p style="text-align: center;"><a href="/airport"><span style="display: inline-block; animation: bellShake 0.5s infinite ease-in-out;">🔔</span>机场推荐</a></p>
 
-        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme);
-    </script>
-</head>
-<body>
-<div class="header">
-    <img src="https://scontent.fhan14-5.fna.fbcdn.net/v/t39.30808-6/466625746_1092804492191965_5247153222981234180_n.jpg?_nc_cat=104&ccb=1-7&_nc_sid=6ee11a&_nc_ohc=TsCYZyUTmSYQ7kNvgEo-GC6&_nc_zt=23&_nc_ht=scontent.fhan14-5.fna&_nc_gid=Ao5mtm6aqCzgX6q7OgNCaN5&oh=00_AYC4APPHHgBV6Z5-Cvf-8208fYVCkCmuHyxd-xIUy7R1qw&oe=673A2925" alt="Logo" class="logo">
-    <h1>Shadowrocket Unlock Pro Apps</h1>
-    <div class="marquee">
-        <div class="marquee-content">
-            Chào Mừng Chúng Mày Đến Với Hoàng Nam Unlock Apps Không Có Chuyện Miễn Phí
-        </div>
-    </div>
+	<div style="display: flex; margin: 10px 0;" bis_skin_checked="1">
+  <span style="flex: 1; height: 1px; background-color: #0F9D58;"></span>
+  <span style="flex: 1; height: 1px; background-color: #F4B400;"></span>
+  <span style="flex: 1; height: 1px; background-color: #DB4437;"></span>
+  <span style="flex: 1; height: 1px; background-color: #4285F4;"></span>
 </div>
+<h2><p style="text-align: center;">
+<svg width="30" height="12" xmlns="http://www.w3.org/2000/svg"><g><rect rx="6" width="30" height="8" fill="#34A853"></rect></g></svg>
+配置</p></h2>
+    <div class="container" bis_skin_checked="1">
+    <a href="https://whatshub.top/manual"><button class="myButton color-1">📚教程-Manual</button></a>
+<a href="https://whatshub.top/config/shadowrocket_basic.conf"><button class="myButton color-3">⚙️配置文件</button></a>
+<a href="https://whatshub.top/config/shadowrocket_lite.conf"><button class="myButton color-2">⚙️配置文件·轻量</button></a>
 
-<div id="dateTime"></div>
-
+    </div>
+<br>
+<h2><p style="text-align: center;">
+<svg width="30" height="12" xmlns="http://www.w3.org/2000/svg"><g><rect rx="6" width="30" height="8" fill="#4285f4"></rect></g></svg>
+模块</p></h2>
 <div class="search-container">
     <input type="text" id="searchInput" onkeyup="filterButtons()" class="search-input" placeholder="Tìm kiếm...">
 </div>
@@ -833,32 +766,78 @@
   </div>
 </div>
 
-</div>
-        </div>
-    </div>
+<script>const buttons = document.querySelectorAll('.myButton');
+const pageType = document.body.dataset.page || (() => { throw new Error('No data-page attribute found on <body>'); })();
+const isIOS = /iP(hone|ad|od)/.test(navigator.userAgent);
+const buttonIndex = new Map([...buttons].map(b => [b, { text: b.textContent.trim().toLowerCase(), parent: b.parentElement.tagName === 'A' ? b.parentElement : b }]));
+const handleClick = (link, element, type) => {
+    const text = element.textContent.trim();
+    const schemes = {
+        sh: { check: ['whatshub.top/config/', 'whatshub.top/module/'], ios: l => l.includes('whatshub.top/config/') ? `shadowrocket://config/add/${l}` : `shadowrocket://install?module=${l}` },
+        st: { check: ['whatshub.top/config/', 'whatshub.top/stoverride/'], ios: l => l.includes('whatshub.top/config/') ? `https://link.stash.ws/install-config/${l.replace(/^https?:\/\//, '')}` : `https://link.stash.ws/install-override/${l.replace(/^https?:\/\//, '')}` },
+        qu: { check: ['whatshub.top/rewrite/'], ios: l => l.split('.').pop().toLowerCase() === 'json' ? `quantumult-x:///ui?module=gallery&type=task&action=add&content=["${l}"]` : `quantumult-x:///add-resource?remote-resource={"rewrite_remote":["${l}"]}` },
+        lo: { check: ['whatshub.top/config/', 'whatshub.top/plugin/'], ios: l => l.includes('whatshub.top/plugin/') ? `loon://import?plugin=${encodeURIComponent(l)}` : l }
+    };
+    const scheme = schemes[type];
+    if (scheme) {
+        const needsCopy = scheme.check.some(c => link.includes(c));
+        isIOS ? window.location.href = needsCopy ? scheme.ios(link) : link : needsCopy ? copyToClipboard(link, element, text) : window.location.href = link;
+    } else if (type === 'cp') copyToClipboard(link, element, text);
+    else if (type === 'tr') window.location.href = link;
+    else if (type !== 'in') throw new Error(`Invalid page type: ${type}`);
+};
+const copyToClipboard = async (link, element, text) => {
+    const copy = async () => navigator.clipboard?.writeText(link) || (document.execCommand("copy", false, (t => (t = document.createElement("textarea"), t.value = link, document.body.appendChild(t), t.select(), t))()));
+    try {
+        await copy();
+        element.textContent = "✅链接已复制";
+        setTimeout(() => element.textContent = text, 1000);
+    } catch (err) {
+        console.error('复制失败:', err);
+        const temp = document.createElement("textarea");
+        temp.value = link;
+        document.body.appendChild(temp);
+        temp.select();
+        document.execCommand("copy");
+        document.body.removeChild(temp);
+        element.textContent = "✅链接已复制";
+        setTimeout(() => element.textContent = text, 1000);
+    }
+};
+const shuffleArray = arr => { for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [arr[i], arr[j]] = [arr[j], arr[i]]; } };
+const assignRandomClasses = buttons => {
+    const classes = ['color-1', 'color-2', 'color-3', 'color-4'];
+    shuffleArray(classes);
+    buttons.forEach((b, i) => b.classList.add(classes[i % 4]));
+};
+const debounce = (fn, wait) => {
+    let t;
+    return (...args) => (clearTimeout(t), t = setTimeout(() => fn(...args), wait));
+};
+const initSearch = buttons => {
+    const searchBar = document.getElementById("searchBar");
+    if (!searchBar) return;
+    searchBar.addEventListener("input", debounce(() => {
+        const keyword = searchBar.value.trim().toLowerCase();
+        requestAnimationFrame(() => buttonIndex.forEach(({ text, parent }) => parent.style.display = text.includes(keyword) ? 'block' : 'none'));
+    }, 300));
+};
+const bindEvents = () => document.addEventListener('click', e => {
+    const target = e.target.closest('.myButton[data-href], .container a .myButton');
+    if (target) {
+        e.preventDefault();
+        handleClick(target.dataset.href || target.closest('a').getAttribute('href'), target, pageType);
+    }
+});
+(() => {
+    assignRandomClasses(buttons);
+    bindEvents();
+    initSearch(buttons);
+})();</script>
+<ins class="adsbygoogle" style="display:block" data-ad-format="autorelaxed" data-ad-client="ca-pub-4631656380634463" data-ad-slot="6352893966"></ins>
+<script>
+     (adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+  <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'943531e13da35f69',t:'MTc0Nzg0MjI2My4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><iframe height="1" width="1" style="position: absolute; top: 0px; left: 0px; border: none; visibility: hidden;"></iframe><script defer="" src="https://static.cloudflareinsights.com/beacon.min.js/vcd15cbe7772f49c399c6a5babf22c1241717689176015" integrity="sha512-ZpsOmlRQV6y907TI0dKBHq9Md29nnaEIPlkf84rnaERnq6zvWvPUqr2ft8M1aS28oN72PdrCzSjY4U6VaAw1EQ==" data-cf-beacon="{&quot;rayId&quot;:&quot;943531e13da35f69&quot;,&quot;version&quot;:&quot;2025.4.0-1-g37f21b1&quot;,&quot;r&quot;:1,&quot;token&quot;:&quot;0e67592eea2d4eedb9b022665ac4d5c8&quot;,&quot;serverTiming&quot;:{&quot;name&quot;:{&quot;cfExtPri&quot;:true,&quot;cfL4&quot;:true,&quot;cfSpeedBrain&quot;:true,&quot;cfCacheStatus&quot;:true}}}" crossorigin="anonymous"></script>
 
-    <div class="footer">
-        <p class="copyright">&copy; Shadowrocket Unlock Pro Apps. Bản Quyền Thuộc Về Hoàng Nam.
-            <a href="https://www.facebook.com/cao.vannam.26042k5"> (Nút Liên Hệ) </a>
-        </p>
-    </div>
-
-    <!-- Menu phát nhạc -->
-    <div id="musicMenu" class="music-menu">
-        <input type="file" accept="audio/mp3, video/mp4" onchange="loadFile(event)">
-        <audio id="audioPlayer" controls style="width: 100%;"></audio>
-        <button onclick="document.getElementById('musicMenu').style.display='none'">Đóng</button>
-    </div>
-    <div id="musicToggle" class="music-toggle">🎵</div>
-
-    <script src="/js/sh3.js"></script>
-    <ins class="adsbygoogle"
-         style="display:block"
-         data-ad-format="autorelaxed"
-         data-ad-client="ca-pub-4631656380634463"
-         data-ad-slot="6352893966"></ins>
-    <script>
-        (adsbygoogle = window.adsbygoogle || []).push({});
-    </script>
-</body>
-</html>
+<savior-host style="all: unset; position: absolute; top: 0; left: 0; z-index: 99999999999999; display: block !important; overflow: unset"></savior-host><en2vi-host class="corom-element" version="3" style="all: initial; position: absolute; top: 0; left: 0; right: 0; height: 0; margin: 0; text-align: left; z-index: 10000000000; pointer-events: none; border: none; display: block"></en2vi-host><savior-host style="all: unset; position: absolute; top: 0; left: 0; z-index: 99999999999999; display: block !important; overflow: unset"></savior-host></body>
