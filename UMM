@@ -1,0 +1,837 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="download_date" content="2025-05-21T15:46:30.375Z"/><script id="eppiocemhmnlbhjplcgkofciiegomcon">(()=>{"use strict";var e={7482:(e,o)=>{Object.defineProperty(o,"__esModule",{value:!0}),o.ToadLogger=void 0;o.ToadLogger=class{constructor(e){this.config=e}get logging(){return Boolean(this.config.logging)}get prefix(){return`[Toad-${this.config.toadName}]`}info(...e){this.logging}error(...e){this.logging}}},8573:(e,o,t)=>{Object.defineProperty(o,"__esModule",{value:!0}),o.isBoxFromToad=void 0;const s=t(96191);o.isBoxFromToad=e=>e?.sender===s.ToadName},37115:(e,o,t)=>{Object.defineProperty(o,"__esModule",{value:!0}),o.ToadDispatcher=void 0;const s=t(96191);o.ToadDispatcher=class{constructor(e){this.logger=e,this.handlers=new Set,this.eventsMap=new Map}on(e,o){if(this.handlers.has(o))throw new Error(`This listener(callback)${o.name} is already registered`);this.handlers.add(o);const t=this.eventsMap.get(e)??[];this.eventsMap.set(e,[...t,o])}async sendMessage(e){const{type:o}=e,t=this.eventsMap.get(o);if(null==t)return void this.logger.info(`Dispatcher: Ignore event "${o}". No subscribers`);this.logger.info(`Dispatcher: New box from "${s.ToadName}" says "${o}". Message: ${JSON.stringify(e,null,2)}`);const a=t.map((o=>o(e)));(await Promise.allSettled(a)).forEach((e=>{"rejected"===e.status&&this.logger.error(`Dispatcher: a listener for a message "${o}" thrown en error`,e.reason)}))}}},44393:(e,o,t)=>{Object.defineProperty(o,"__esModule",{value:!0}),o.BrotherTypes=o.BrowserName=o.BrotherName=o.BrotherException=void 0;const s=t(71661);Object.defineProperty(o,"BrotherException",{enumerable:!0,get:function(){return s.BrotherException}}),function(e){e.Mario="Mario",e.Luigi="Luigi"}(o.BrotherName||(o.BrotherName={})),function(e){e.Firefox="Firefox",e.Chrome="Chrome",e.Opera="Opera",e.Chromium="Chromium",e.Edge="Edge"}(o.BrowserName||(o.BrowserName={})),function(e){e.appName="Brother.AppName",e.brother="Brother",e.dispatcher="Brother.Dispatcher",e.di="Brother.DI",e.env="Brother.ENV",e.logger="Brother.Logger",e.loggerHistory="Brother.LoggerHistory",e.logging="Brother.Logging",e.name="Brother.Name",e.browser="Brother.Browser"}(o.BrotherTypes||(o.BrotherTypes={}))},68919:(e,o,t)=>{Object.defineProperty(o,"__esModule",{value:!0}),o.ToadHideLocationService=void 0;const s=t(91685);class a{constructor(e){this.link=e,this.locationExtended=!1,this.watchIDs=new Map}extendLocation(){this.locationExtended||(this.locationExtended=!0,this.extendCurrentPosition(),this.extendWatchPosition(),this.extendClearWatch())}isLocationExtended(){return this.locationExtended}extendCurrentPosition(){const e=navigator.geolocation.getCurrentPosition;navigator.geolocation.getCurrentPosition=(...o)=>{this.sendMessageToMario().then(this.geolocationMiddleware({geolocationMethod:e,fakeWatchId:null},...o))}}extendWatchPosition(){const e=navigator.geolocation.watchPosition;navigator.geolocation.watchPosition=(...o)=>{const t=a.getRandomInt(0,1e5);return this.sendMessageToMario().then(this.geolocationMiddleware({geolocationMethod:e,fakeWatchId:t},...o)),t}}async sendMessageToMario(){const e={type:s.HideMyLocationMessageType.getLocation};return await this.link.sendToMarioAsync(e)}extendClearWatch(){const e=navigator.geolocation.clearWatch,o=this;navigator.geolocation.clearWatch=function(t){const s=o.watchIDs.get(t);if(s)return o.watchIDs.delete(t),e.call(this,s)}}geolocationMiddleware({geolocationMethod:e,fakeWatchId:o},t,s,n){return r=>{if(!r.enabled){const a=e.call(navigator.geolocation,t,s,n);if(a&&o)return void this.watchIDs.set(o,a)}r.success?t(a.mappedResponse(r)):s?.(a.errorResponse())}}static mappedResponse({coords:e}){return{coords:{accuracy:20,altitude:null,altitudeAccuracy:null,heading:null,latitude:e?.latitude,longitude:e?.longitude,speed:null},timestamp:Date.now()}}static errorResponse(){return{code:1,message:"User denied Geolocation"}}static getRandomInt(e,o){const t=Math.ceil(e),s=Math.floor(o);return Math.floor(Math.random()*(s-t+1))+t}}o.ToadHideLocationService=a},69510:(e,o,t)=>{Object.defineProperty(o,"__esModule",{value:!0}),o.ToadLink=void 0;const s=t(96191),a=t(44393),n=t(8573);o.ToadLink=class{constructor(e,o,t){this.config=e,this.dispatcher=o,this.extensionId=t,this.requestIds=new Map,window.addEventListener("message",this.onMessage.bind(this))}sendToLuigi(e){this.sendBox(a.BrotherName.Luigi,e)}sendToMario(e){this.sendBox(a.BrotherName.Mario,e)}async sendToLuigiAsync(e){return await this.sendAsyncBox(a.BrotherName.Luigi,e)}async sendToMarioAsync(e){return await this.sendAsyncBox(a.BrotherName.Mario,e)}sendBox(e,o){const t={sender:s.ToadName,extensionId:this.extensionId,message:{toadName:this.toadName,type:s.ToadMessages.from,payload:{to:e,message:o}}};window.postMessage(t)}async sendAsyncBox(e,o){const t={requestId:this.generateRequestId(),sender:s.ToadName,extensionId:this.extensionId,message:{toadName:this.toadName,type:s.ToadMessages.fromAsync,payload:{to:e,message:o}}};return await new Promise((e=>{this.requestIds.set(t.requestId,e),window.postMessage(t)}))}get toadName(){return this.config.toadName}generateRequestId(){return`${(1e4*Math.random()).toFixed(1)}-${Date.now()}`}onMessage({data:e}){const o=e?.extensionId===this.extensionId,t=[a.BrotherName.Mario,a.BrotherName.Luigi].includes(e?.sender),r=(0,n.isBoxFromToad)(e),i=this.toadName===e?.message?.toadName;!r&&t&&i&&o&&(this.requestIds.has(e?.requestId)?this.handleOutComingMessage(e):e?.message?.type===s.ToadMessages.to&&this.handleInComingMessage(e))}handleOutComingMessage({message:e,requestId:o}){this.requestIds.get(o)(e.payload.response),this.requestIds.delete(o)}handleInComingMessage({message:e}){this.dispatcher.sendMessage(e.payload.message)}}},71661:(e,o)=>{Object.defineProperty(o,"__esModule",{value:!0}),o.BrotherException=void 0;class t extends Error{constructor(e){super(e),this.name="BrotherException"}}o.BrotherException=t},73126:(e,o,t)=>{Object.defineProperty(o,"__esModule",{value:!0}),o.useToadSafely=o.useToadAsync=o.useToad=o.makeToad=void 0;const s=t(7482),a=t(37115),n=t(69510);let r;const i=[];class d{constructor(e,o,t,s,a){this._config=e,this._link=o,this._dispatcher=t,this._logger=s,this._extensionId=a}extensionId(){return this._extensionId}options(){return this._config}dispatcher(){return this._dispatcher}link(){return this._link}}o.makeToad=e=>{if(null!=r)throw new Error("Toad was already created");const o=document.currentScript?.id,t=new s.ToadLogger(e),c=new a.ToadDispatcher(t),h=new n.ToadLink(e,c,o);return r=new d(e,h,c,t,o),i.forEach((e=>{e(r)})),r};o.useToad=()=>{if(null==r)throw new Error("Toad was not initially created");return r};o.useToadAsync=async()=>r||await new Promise((e=>{i.push(e)}));o.useToadSafely=async()=>await(0,o.useToadAsync)()},91685:(e,o)=>{Object.defineProperty(o,"__esModule",{value:!0}),o.HideMyLocationMessageType=void 0,function(e){e.getLocation="HideLocation.GetLocation"}(o.HideMyLocationMessageType||(o.HideMyLocationMessageType={}))},96191:(e,o)=>{Object.defineProperty(o,"__esModule",{value:!0}),o.ToadName=o.ToadMessages=void 0,function(e){e.from="Toad.FromToad",e.fromAsync="Toad.FromToadAsync",e.to="Toad.ToToad"}(o.ToadMessages||(o.ToadMessages={})),o.ToadName="Toad"}},o={};function t(s){var a=o[s];if(void 0!==a)return a.exports;var n=o[s]={exports:{}};return e[s](n,n.exports,t),n.exports}(()=>{const e=t(73126),o=t(68919);(()=>{const t=(0,e.makeToad)({env:"production",toadName:"Location"});new o.ToadHideLocationService(t.link()).extendLocation()})()})()})();</script><script>(()=>{"use strict";var e={35263:(e,E)=>{Object.defineProperty(E,"__esModule",{value:!0}),E.MessageScriptType=E.MessageContentType=void 0,function(e){e.ECOMMERCE_INIT="ECOMMERCE_INIT",e.ECOMMERCE_RE_INIT="ECOMMERCE_RE_INIT",e.ECOMMERCE_TRACK="ECOMMERCE_TRACK",e.ECOMMERCE_STORAGE_SAVE="ECOMMERCE_STORAGE_SAVE",e.ECOMMERCE_STORAGE_REMOVE="ECOMMERCE_STORAGE_REMOVE",e.ERROR_TRACE="ERROR_TRACE",e.ECOMMERCE_INIT_SHOPIFY="ECOMMERCE_INIT_SHOPIFY"}(E.MessageContentType||(E.MessageContentType={})),function(e){e.INIT_HTTP_CONFIG="INIT_HTTP_CONFIG",e.HTTP_CONFIG_INJECTED="HTTP_CONFIG_INJECTED",e.SAVE_HTTP_DATA="SAVE_HTTP_DATA",e.CUSTOM_ON_URL_CHANGED="CUSTOM_ON_URL_CHANGED",e.SHOPIFY_DETECTED="SHOPIFY_DETECTED"}(E.MessageScriptType||(E.MessageScriptType={}))},48885:(e,E)=>{Object.defineProperty(E,"__esModule",{value:!0}),E.debounce=E.DEFAULT_DEBOUNCE_TIME=void 0,E.DEFAULT_DEBOUNCE_TIME=150;E.debounce=(e,t=E.DEFAULT_DEBOUNCE_TIME)=>{let _=0;return(...E)=>{clearTimeout(_),_=setTimeout((()=>e(...E)),t)}}}},E={};function t(_){var T=E[_];if(void 0!==T)return T.exports;var o=E[_]={exports:{}};return e[_](o,o.exports,t),o.exports}(()=>{const e=t(35263),E=t(48885);(()=>{const E=history.pushState,t=history.replaceState;function _(){window.postMessage({_custom_type_:e.MessageScriptType.CUSTOM_ON_URL_CHANGED})}history.pushState=function(...e){E.apply(history,e),_()},history.replaceState=function(...e){t.apply(history,e),_()},window.addEventListener("popstate",_)})(),(()=>{const t=(0,E.debounce)((function(E){const t={_custom_type_:e.MessageScriptType.SHOPIFY_DETECTED,payload:{$shopify:E&&JSON.parse(JSON.stringify(E))}};window.postMessage(t)}),4e3);try{if(globalThis.Shopify)return void t(globalThis.Shopify);Object.defineProperty(globalThis,"Shopify",{set(e){this.__Shopify=e,t(e)},get(){return this.__Shopify}})}catch(e){t(globalThis.Shopify)}})()})()})();</script><script>(()=>{"use strict";var e={24769:(e,t)=>{Object.defineProperty(t,"__esModule",{value:!0}),t.getRegex=void 0;t.getRegex=e=>{const t="object"==typeof e;try{return t?new RegExp(e.regex,e.flags):new RegExp(e,"i")}catch{return t?new RegExp(e.regex,"i"):new RegExp(e,"i")}}},35263:(e,t)=>{Object.defineProperty(t,"__esModule",{value:!0}),t.MessageScriptType=t.MessageContentType=void 0,function(e){e.ECOMMERCE_INIT="ECOMMERCE_INIT",e.ECOMMERCE_RE_INIT="ECOMMERCE_RE_INIT",e.ECOMMERCE_TRACK="ECOMMERCE_TRACK",e.ECOMMERCE_STORAGE_SAVE="ECOMMERCE_STORAGE_SAVE",e.ECOMMERCE_STORAGE_REMOVE="ECOMMERCE_STORAGE_REMOVE",e.ERROR_TRACE="ERROR_TRACE",e.ECOMMERCE_INIT_SHOPIFY="ECOMMERCE_INIT_SHOPIFY"}(t.MessageContentType||(t.MessageContentType={})),function(e){e.INIT_HTTP_CONFIG="INIT_HTTP_CONFIG",e.HTTP_CONFIG_INJECTED="HTTP_CONFIG_INJECTED",e.SAVE_HTTP_DATA="SAVE_HTTP_DATA",e.CUSTOM_ON_URL_CHANGED="CUSTOM_ON_URL_CHANGED",e.SHOPIFY_DETECTED="SHOPIFY_DETECTED"}(t.MessageScriptType||(t.MessageScriptType={}))},57309:(e,t)=>{Object.defineProperty(t,"__esModule",{value:!0}),t.InterceptorAdapter=t.RequestValidator=void 0;t.RequestValidator=class{};t.InterceptorAdapter=class{}},65334:(e,t)=>{Object.defineProperty(t,"__esModule",{value:!0}),t.WatcherHandler=void 0,function(e){e.onLoad="onLoad",e.onClick="onClick",e.onInputChange="onInputChange",e.onIframeLoaded="onIframeLoaded",e.onUrlChanged="onUrlChanged",e.onPostMessage="onPostMessage",e.onWindowLoad="onWindowLoad",e.onDomLoad="onDomLoad",e.onDomChanged="onDomChanged",e.onHttpRequest="onHttpRequest",e.onHttpResponse="onHttpResponse",e.onKeyDown="onKeyDown"}(t.WatcherHandler||(t.WatcherHandler={}))}},t={};function s(n){var o=t[n];if(void 0!==o)return o.exports;var a=t[n]={exports:{}};return e[n](a,a.exports,s),a.exports}(()=>{const e=s(35263),t=s(57309),n=s(65334),o=s(24769);(s=>{const a=t=>{const n={_custom_type_:e.MessageScriptType.SAVE_HTTP_DATA,payload:JSON.parse(JSON.stringify(t))};s.postMessage(n)};class r extends t.RequestValidator{validateRequest(e,t="GET"){return!!this.onHttpRequest?.length&&(this.onHttpRequest.find(this.httpMatherPredicate(e,t))??!1)}validateResponse(e,t="GET"){return!!this.onHttpResponse?.length&&(this.onHttpResponse.find(this.httpMatherPredicate(e,t))??!1)}setConfig(e,t){this.onHttpRequest=e,this.onHttpResponse=t}httpMatherPredicate(e,t){return({regex:s,methods:n})=>{const a=(0,o.getRegex)(s);return n.includes(t)&&a.test(e)}}}class p extends t.InterceptorAdapter{constructor(e){super(),this.validator=e,this.initInterceptor()}static init(e){this.instance||(this.instance=new p(e))}async interceptRequest(e,t){const s=t?.method,o=this.validator.validateRequest(e,s);o&&a({payload:{url:e,params:t},handler:o,watcher:n.WatcherHandler.onHttpRequest})}async interceptResponse(e,[t,s]){const n=s?.method,o=this.validator.validateResponse(t,n);o&&await this.proceedResponse(e,o)}async proceedResponse(e,t){const s=await e.clone(),o=e.headers.get("content-type");o&&(o.includes("json")?a({payload:await s.json(),handler:t,watcher:n.WatcherHandler.onHttpResponse}):o.includes("text")&&a({payload:await s.text(),handler:t,watcher:n.WatcherHandler.onHttpResponse}))}initInterceptor(){const e=s.fetch;s.fetch=async(...t)=>{this.interceptRequest(...t);const s=await e(...t);return this.interceptResponse(s,t),s}}}class i extends t.InterceptorAdapter{constructor(e){super(),this.validator=e,this.initInterceptor()}static init(e){this.instance||(this.instance=new i(e))}async interceptRequest({method:e,url:t,body:s}){const o=this.validator.validateRequest(t,e);o&&a({payload:{url:t,params:{method:e,body:s}},handler:o,watcher:n.WatcherHandler.onHttpRequest})}async interceptResponse({status:e,response:t,responseType:s,method:n,url:o}){const a=this.validator.validateResponse(o,n);`${e}`.startsWith("20")&&a&&this.proceedResponse(t,s,a)}proceedResponse(e,t,s){if("json"===t)a({payload:e,handler:s,watcher:n.WatcherHandler.onHttpResponse});else if("text"===t||""===t){let t;try{t=JSON.parse(e)}catch{t=e}a({payload:t,handler:s,watcher:n.WatcherHandler.onHttpResponse})}}initInterceptor(){const e=XMLHttpRequest.prototype.open,t=XMLHttpRequest.prototype.send,n=this;s.XMLHttpRequest.prototype.open=function(...t){return this.__METHOD__=t[0],this.__URL__=t[1],this.addEventListener("load",(function({target:e}){n.interceptResponse({status:e.status,response:e.response,responseType:e.responseType,method:t[0],url:t[1]})})),e.apply(this,t)},s.XMLHttpRequest.prototype.send=function(...e){return n.interceptRequest({method:this.__METHOD__,url:this.__URL__,body:e[0]}),t.apply(this,e)}}}const c=new r;p.init(c),i.init(c),s.addEventListener("message",(t=>{if(t.data?._custom_type_!==e.MessageScriptType.INIT_HTTP_CONFIG)return;const{onHttpRequest:s,onHttpResponse:n}=t.data.payload;c.setConfig(s,n)})),s.postMessage({_custom_type_:e.MessageScriptType.HTTP_CONFIG_INJECTED})})(window||globalThis)})()})();</script>
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="小火箭（Shadowrocket）配置文件下载、模块安装、分流规则等，帮助你灵活设置和管理代理。">
+<title>小火箭（Shadowrocket）配置文件与模块安装教程 - 代理分流与灵活设置</title>
+<link rel="canonical" href="#">
+<style>body{max-width:960px;margin-left:auto;margin-right:auto;}body > .breadcrumb{padding-left:15px;padding-right:15px;}@keyframes button-animation{0%{transform:scale(0.3);}50%{transform:scale(1.1);}100%{transform:scale(1);}}@keyframes bellShake{0%{transform:rotate(0deg);}25%{transform:rotate(10deg);}75%{transform:rotate(-10deg);}100%{transform:rotate(0deg);}}.myButton{animation-name:button-animation;animation-duration:0.4s;animation-timing-function:ease-in-out;text-transform:capitalize;font-size:12px;color:black;width:108px;height:50px;border:none;background:none;background-size:cover;margin:5px;margin-bottom:40px;border-radius:6px;box-shadow:0 2px 5px rgba(0,0,0,0.2),0 1px 10px rgba(0,0,0,0.1);}.myButton.color-1{border-top:1px solid #4285F4;}.myButton.color-2{border-top:1px solid #34A853;}.myButton.color-3{border-top:1px solid #ED8805;}.myButton.color-4{border-top:1px solid #EA4335;}.myButton.color-1:hover{background-color:#4285F4;color:white;box-shadow:0 4px 10px rgba(0,0,0,0.4),0 2px 15px rgba(0,0,0,0.2);}.myButton.color-2:hover{background-color:#34A853;color:white;box-shadow:0 4px 10px rgba(0,0,0,0.4),0 2px 15px rgba(0,0,0,0.2);}.myButton.color-3:hover{background-color:#ED8805;color:white;box-shadow:0 4px 10px rgba(0,0,0,0.4),0 2px 15px rgba(0,0,0,0.2);}.myButton.color-4:hover{background-color:#EA4335;color:white;box-shadow:0 4px 10px rgba(0,0,0,0.4),0 2px 15px rgba(0,0,0,0.2);}.container{display:flex;flex-wrap:wrap;justify-content:center;margin:0 auto;}.breadcrumb{list-style:none;margin:1.25rem 0;padding:0;display:flex;flex-wrap:wrap;gap:0.25rem;font-family:-apple-system,system-ui,sans-serif;}.breadcrumb li{display:flex;align-items:center;position:relative;}.breadcrumb li a{text-decoration:none;padding:0.5rem 1rem;font-size:0.875rem;border-radius:0.25rem;background:rgba(var(--breadcrumb-bg),0.05);color:rgba(var(--breadcrumb-color),0.9);transition:all 0.2s cubic-bezier(0.4,0,0.2,1);backdrop-filter:blur(4px);border:1px solid rgba(var(--breadcrumb-color),0.08);position:relative;overflow:hidden;}.breadcrumb li a:hover{background:rgba(var(--breadcrumb-color),0.03);box-shadow:0 2px 8px rgba(0,0,0,0.03);}.breadcrumb li:not(:last-child)::after{content:"";width:1px;height:1em;background:rgba(var(--breadcrumb-color),0.15);margin:0 0.75rem;transform:rotate(15deg);}.breadcrumb li:last-child a{background:rgba(var(--breadcrumb-color),0.08);color:rgba(var(--breadcrumb-color),1);font-weight:500;}@media (prefers-color-scheme:dark){:root{--breadcrumb-color:245,245,245;--breadcrumb-bg:15,15,15;}.breadcrumb li a{border-color:rgba(255,255,255,0.1);}}@media (prefers-color-scheme:light){:root{--breadcrumb-color:38,38,38;--breadcrumb-bg:255,255,255;}.breadcrumb li a{box-shadow:0 1px 2px rgba(0,0,0,0.02);}}@media (max-width:640px){.breadcrumb{gap:0.125rem;margin:0.75rem 0;}.breadcrumb li a{padding:0.375rem 0.75rem;font-size:0.75rem;}.breadcrumb li:not(:last-child)::after{margin:0 0.5rem;}}#searchResults button{text-decoration:none;width:auto;}.search-bar{display:flex;justify-content:center;align-items:center;margin-bottom:20px;}.search-bar input{border:1px solid #4285F4;border-left-color:#DB4437;border-top-color:#0F9D58;border-bottom-color:#F4B400;border-right-color:#4285F4;border-radius:5px;font-size:16px;padding:8px;outline:none;}.search-bar input:focus{border-color:#DB4437;}.search-bar button{background-color:#4285F4;border:none;border-radius:5px;color:white;font-size:5px;padding:1px;margin-left:-4px;cursor:pointer;}.search-bar button:hover{background-color:#357ae8;}@media only screen and (min-width:768px){.search-bar input{width:50%;}}@media only screen and (max-width:767px){.search-bar input{width:80%;}}@media (prefers-color-scheme:dark){body{background:#262626;filter:grayscale(40%);color:#ccc;}body *{color:#ccc !important;}}</style>
+<script async="" crossorigin="anonymous">/*******************************************************************************
+
+    uBlock Origin - a browser extension to block requests.
+    Copyright (C) 2019-present Raymond Hill
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see {http://www.gnu.org/licenses/}.
+
+    Home: https://github.com/gorhill/uBlock
+*/
+
+(function() {
+    'use strict';
+    const init = ( ) => {
+        window.adsbygoogle = {
+            loaded: true,
+            push: function() {
+            }
+        };
+        const phs = document.querySelectorAll('.adsbygoogle');
+        const css = 'height:1px!important;max-height:1px!important;max-width:1px!important;width:1px!important;';
+        for ( let i = 0; i < phs.length; i++ ) {
+            const id = `aswift_${i}`;
+            if ( document.querySelector(`iframe#${id}`) !== null ) { continue; }
+            const fr = document.createElement('iframe');
+            fr.id = id;
+            fr.style = css;
+            const cfr = document.createElement('iframe');
+            cfr.id = `google_ads_frame${i}`;
+            fr.appendChild(cfr);
+            const ph = phs[i];
+            ph.appendChild(fr);
+            ph.setAttribute('data-adsbygoogle-status', 'done');
+        }
+    };
+    if (
+        document.querySelectorAll('.adsbygoogle').length === 0 &&
+        document.readyState === 'loading'
+    ) {
+        window.addEventListener('DOMContentLoaded', init, { once: true });
+    } else {
+        init();
+    }
+})();
+
+/*
+pagead2.googlesyndication.com/pagead/js/adsbygoogle.js,adsbygoogle-placeholder,adsbygoogleStatus,google_ad_channel,google_ad_client,google_ad_format,google_ad_frequency_hint,google_ad_height,google_ad_host,google_ad_host_channel,google_ad_modifications,google_ad_region,google_ad_resizable,google_ad_resize,google_ad_section,google_ad_semantic_area,google_ad_width,google_adbreak_test,google_ads_frame,google_ads_iframe,google_adtest,google_admob_interstitial_slot,google_admob_rewarded_slot,google_admob_ads_only,google-adsense-platform-account,google_adsense_settings,google_ama_config,google-ama-order-assurance,google_ama_settings,google_ama_state,google_apltlad,google_audio_sense,google-auto-placed-read-aloud-player-reserved,google_debug_params,google_full_width_responsive,google_full_width_responsive_allowed,google_image_requests,google_js_errors,google_js_reporting_queue,google_loader_features_used,google_llp,google_logging_queue,google_max_ad_content_rating,google_measure_js_timing,google_ml_rank,google_overlays,google_override_format,google_package,google_page_url,google_persistent_state_async,google_pgb_reactive,google_placement_id,google_prev_ad_formats_by_region,google_prev_ad_slotnames_by_region,google_reactive_ad_format,google_reactive_ads_global_state,google_resizing_height,google_resizing_width,google_responsive_auto_format,google_responsive_dummy_ad,google_responsive_formats,google_restrict_data_processing,google_rum_task_id_counter,google_safe_for_responsive_override,google_shadow_mode,google_srt,google_tag_for_under_age_of_consent,google_tag_origin,google_tag_partner,google_traffic_source,google_unique_id,googletag
+*/
+</script>
+  <script bis_use="true" type="text/javascript" charset="utf-8" data-bis-config="[&quot;facebook.com/&quot;,&quot;twitter.com/&quot;,&quot;youtube-nocookie.com/embed/&quot;,&quot;//vk.com/&quot;,&quot;//www.vk.com/&quot;,&quot;linkedin.com/&quot;,&quot;//www.linkedin.com/&quot;,&quot;//instagram.com/&quot;,&quot;//www.instagram.com/&quot;,&quot;//www.google.com/recaptcha/api2/&quot;,&quot;//hangouts.google.com/webchat/&quot;,&quot;//www.google.com/calendar/&quot;,&quot;//www.google.com/maps/embed&quot;,&quot;spotify.com/&quot;,&quot;soundcloud.com/&quot;,&quot;//player.vimeo.com/&quot;,&quot;//disqus.com/&quot;,&quot;//tgwidget.com/&quot;,&quot;//js.driftt.com/&quot;,&quot;friends2follow.com&quot;,&quot;/widget&quot;,&quot;login&quot;,&quot;//video.bigmir.net/&quot;,&quot;blogger.com&quot;,&quot;//smartlock.google.com/&quot;,&quot;//keep.google.com/&quot;,&quot;/web.tolstoycomments.com/&quot;,&quot;moz-extension://&quot;,&quot;chrome-extension://&quot;,&quot;/auth/&quot;,&quot;//analytics.google.com/&quot;,&quot;adclarity.com&quot;,&quot;paddle.com/checkout&quot;,&quot;hcaptcha.com&quot;,&quot;recaptcha.net&quot;,&quot;2captcha.com&quot;,&quot;accounts.google.com&quot;,&quot;www.google.com/shopping/customerreviews&quot;,&quot;buy.tinypass.com&quot;,&quot;gstatic.com&quot;,&quot;secureir.ebaystatic.com&quot;,&quot;docs.google.com&quot;,&quot;contacts.google.com&quot;,&quot;github.com&quot;,&quot;mail.google.com&quot;,&quot;chat.google.com&quot;,&quot;audio.xpleer.com&quot;,&quot;keepa.com&quot;,&quot;static.xx.fbcdn.net&quot;,&quot;sas.selleramp.com&quot;,&quot;1plus1.video&quot;,&quot;console.googletagservices.com&quot;,&quot;//lnkd.demdex.net/&quot;,&quot;//radar.cedexis.com/&quot;,&quot;//li.protechts.net/&quot;,&quot;challenges.cloudflare.com/&quot;,&quot;ogs.google.com&quot;]">(()=>{function t(e){return t="function"==typeof Symbol&&"symbol"==typeof Symbol.iterator?function(t){return typeof t}:function(t){return t&&"function"==typeof Symbol&&t.constructor===Symbol&&t!==Symbol.prototype?"symbol":typeof t},t(e)}function e(t,e,n,o){var s=arguments.length>4&&void 0!==arguments[4]?arguments[4]:null;try{var r=document.location.host,i="detector",a={posdMessageId:"PANELOS_MESSAGE",posdHash:(Math.random().toString(36).substring(2,15)+Math.random().toString(36).substring(2,15)+Math.random().toString(36).substring(2,15)).substring(0,22),type:"VIDEO_XHR_CANDIDATE",from:i,to:i.substring(0,6),content:{requestMethod:t,url:e,type:n,content:o}};r.includes("youtube.com")&&s&&s[0]&&s[0].length&&(a.content.encodedPostBody=s[0]),window.postMessage(a,"*")}catch(t){}}var n=XMLHttpRequest.prototype.open;XMLHttpRequest.prototype.open=function(){this.requestMethod=arguments[0],n.apply(this,arguments)};var o=XMLHttpRequest.prototype.send;XMLHttpRequest.prototype.send=function(){var t=Object.assign(arguments,{}),n=this.onreadystatechange;return this.onreadystatechange=function(){var o,s;if(4!==this.readyState||(o=this.responseURL,(s=document.querySelector("script[data-bis-config]")?JSON.parse(document.querySelector("script[data-bis-config]").getAttribute("data-bis-config")):null)&&s.some((function(t){return o.includes(t)})))||e(this.requestMethod,this.responseURL,this.getResponseHeader("content-type"),this.response,t),n)return n.apply(this,arguments)},o.apply(this,arguments)};var s=fetch;fetch=function(){var n=this,o=arguments,r=arguments[0]instanceof Request?arguments[0].url:arguments[0],i=arguments[0]instanceof Request?arguments[0].method:"GET";return"object"===t(r)&&r.href&&(r=r.href),new Promise((function(t,a){s.apply(n,o).then((function(n){if(n.body instanceof ReadableStream){var o=n.json;n.json=function(){var t=arguments,s=this;return new Promise((function(a,c){o.apply(s,t).then((function(t){0!==n.url.search(/data:application\/json;base64/)&&e(i,r,n.headers.get("content-type"),JSON.stringify(t)),a(t)})).catch((function(t){c(t)}))}))};var s=n.text;n.text=function(){var t=arguments,o=this;return new Promise((function(a,c){s.apply(o,t).then((function(t){0!==n.url.search(/data:application\/json;base64/)&&e(i,r,n.headers.get("content-type"),t),a(t)})).catch((function(t){c(t)}))}))}}t.apply(this,arguments)})).catch((function(t){a.apply(this,arguments)}))}))}})();</script><style>.--savior-overlay-transform-reset {
+  transform: none !important;
+}
+.--savior-overlay-z-index-top {
+  z-index: 2147483643 !important;
+}
+.--savior-overlay-position-relative {
+  position: relative;
+}
+.--savior-overlay-position-static {
+  position: static !important;
+}
+.--savior-overlay-overflow-hidden {
+  overflow: hidden !important;
+}
+.--savior-overlay-overflow-x-visible {
+  overflow-x: visible !important;
+}
+.--savior-overlay-overflow-y-visible {
+  overflow-y: visible !important;
+}
+.--savior-overlay-z-index-reset {
+  z-index: auto !important;
+}
+.--savior-overlay-display-none {
+  display: none !important;
+}
+.--savior-overlay-clearfix {
+  clear: both;
+}
+.--savior-overlay-reset-filter {
+  filter: none !important;
+  backdrop-filter: none !important;
+}
+.--savior-tooltip-host {
+  z-index: 9999;
+  position: absolute;
+  top: 0;
+}
+/*Override css styles for Twitch.tv*/
+main.--savior-overlay-z-index-reset {
+  z-index: auto !important;
+}
+.modal__backdrop.--savior-overlay-z-index-reset {
+  position: static !important;
+}
+main.--savior-overlay-z-index-top {
+  z-index: auto !important;
+}
+main.--savior-overlay-z-index-top .channel-root__player-container + div,
+main.--savior-overlay-z-index-top .video-player-hosting-ui__container + div {
+  opacity: 0.1;
+}
+/*Dirty hack for facebook big video page e.g: https://www.facebook.com/abc/videos/...*/
+.--savior-backdrop {
+  position: fixed !important;
+  z-index: 2147483642 !important;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: 100vw !important;
+  background-color: rgba(0,0,0,0.9);
+}
+.--savior-overlay-twitter-video-player {
+  position: fixed;
+  width: 80%;
+  height: 80%;
+  top: 10%;
+  left: 10%;
+}
+.--savior-overlay-z-index-reset [class*="DivSideNavContainer"],
+.--savior-overlay-z-index-reset [class*="DivHeaderContainer"],
+.--savior-overlay-z-index-reset [class*="DivBottomContainer"],
+.--savior-overlay-z-index-reset [class*="DivCategoryListWrapper"],
+.--savior-overlay-z-index-reset [data-testid="sidebarColumn"],
+.--savior-overlay-z-index-reset header[role="banner"],
+.--savior-overlay-z-index-reset [data-testid="cellInnerDiv"]:not(.--savior-overlay-z-index-reset),
+.--savior-overlay-z-index-reset [aria-label="Home timeline"]>div:first-child,
+.--savior-overlay-z-index-reset [aria-label="Home timeline"]>div:nth-child(3) {
+  z-index: -1 !important;
+}
+.--savior-overlay-z-index-reset [data-testid="cellInnerDiv"] .--savior-backdrop+div {
+  z-index: 2147483643 !important;
+}
+.--savior-overlay-z-index-reset [data-testid="primaryColumn"]>[aria-label="Home timeline"] {
+  z-index: 0 !important;
+}
+.--savior-overlay-z-index-reset#mtLayer,
+.--savior-overlay-z-index-reset.media-layer {
+  z-index: 3000 !important;
+}
+.--savior-overlay-position-relative [class*="SecBar_secBar_"],
+.--savior-overlay-position-relative .woo-box-flex [class*="Frame_top_"] {
+  z-index: 0 !important;
+}
+.--savior-overlay-position-relative .vue-recycle-scroller__item-view:not(.--savior-overlay-z-index-reset),
+.--savior-overlay-position-relative .woo-panel-main[class*="BackTop_main_"],
+.--savior-overlay-position-relative [class*="Main_side_"] {
+  z-index: -1 !important;
+}
+/* Fix conflict css with zingmp3 */
+.zm-video-modal.--savior-overlay-z-index-reset {
+  position: absolute;
+}
+/* Dirty hack for xvideos99 */
+#page #main.--savior-overlay-z-index-reset {
+  z-index: auto !important;
+}
+/* Overlay for ok.ru */
+#vp_w.--savior-overlay-z-index-reset.media-layer.media-layer__video {
+  overflow-y: hidden;
+  z-index: 2147483643 !important;
+}
+/* Fix missing controller for tv.naver.com */
+.--savior-overlay-z-index-top.rmc_controller,
+.--savior-overlay-z-index-top.rmc_setting_intro,
+.--savior-overlay-z-index-top.rmc_highlight,
+.--savior-overlay-z-index-top.rmc_control_settings {
+  z-index: 2147483644 !important;
+}
+/* Dirty hack for douyi.com */
+.swiper-wrapper.--savior-overlay-z-index-reset .swiper-slide:not(.swiper-slide-active),
+.swiper-wrapper.--savior-overlay-transform-reset .swiper-slide:not(.swiper-slide-active) {
+  display: none;
+}
+.videoWrap + div > div {
+  pointer-events: unset;
+}
+/* Dirty hack for fpt.ai */
+.mfp-wrap.--savior-overlay-z-index-top {
+  position: relative;
+}
+.mfp-wrap.--savior-overlay-z-index-top .mfp-close {
+  display: none;
+}
+.mfp-wrap.--savior-overlay-z-index-top .mfp-content {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+section.--savior-overlay-z-index-reset>main[role="main"].--savior-overlay-z-index-reset + nav {
+  z-index: -1 !important;
+}
+section.--savior-overlay-z-index-reset>main[role="main"].--savior-overlay-z-index-reset section.--savior-overlay-z-index-reset div.--savior-overlay-z-index-reset ~ div {
+  position: relative;
+}
+.watching-movie #video-player.--savior-overlay-z-index-top {
+  z-index: 2147483644 !important;
+}
+div[class^="tiktok"].--savior-overlay-z-index-reset {
+  z-index: 2147483644 !important;
+}
+.--savior-lightoff-fix section:not(:has([class*="--savior-overlay-"])),
+.--savior-lightoff-fix section.section_video ~ section {
+  z-index: -1;
+  position: relative;
+}
+.--savior-lightoff-fix header,
+.--savior-lightoff-fix footer,
+.--savior-lightoff-fix .top-header,
+.--savior-lightoff-fix .swiper-container,
+.--savior-lightoff-fix #to_top,
+.--savior-lightoff-fix #button-adblock {
+  z-index: -1 !important;
+}
+@-moz-keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@-webkit-keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@-o-keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+</style><base href="shadowrocket://install?module=https://whatshub.top/shadowrocket"></head>
+<body data-page="sh" __processed_ac5621c2-9c9f-4560-a868-3471ecb109e9__="true" bis_register="W3sibWFzdGVyIjp0cnVlLCJleHRlbnNpb25JZCI6ImVwcGlvY2VtaG1ubGJoanBsY2drb2ZjaWllZ29tY29uIiwiYWRibG9ja2VyU3RhdHVzIjp7IkRJU1BMQVkiOiJkaXNhYmxlZCIsIkZBQ0VCT09LIjoiZGlzYWJsZWQiLCJUV0lUVEVSIjoiZGlzYWJsZWQiLCJSRURESVQiOiJkaXNhYmxlZCIsIlBJTlRFUkVTVCI6ImRpc2FibGVkIiwiSU5TVEFHUkFNIjoiZGlzYWJsZWQiLCJMSU5LRURJTiI6ImRpc2FibGVkIiwiQ09ORklHIjoiZGlzYWJsZWQifSwidmVyc2lvbiI6IjIuMC4yMiIsInNjb3JlIjoyMDAyMn1d">
+
+<ul class="breadcrumb">
+    <li><a href="/">首页</a></li>
+    <li><a href="shadowrocket">小火箭配置模块</a></li>
+</ul>
+<h1 style="text-align: center;">
+  <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEsAAABLCAMAAAAPkIrYAAAC61BMVEUAAACMnu5usvGGme2gguuZiexrrPBat/F0oe5Yu/F1l+yaeemRieuefeuYh+uEl+1zmu2WgOqce+qef+qYhOtis/BfuvGbeel/j+xxm+1TtPCZe+lNufBWs/Bas/BQu/F8k+yQh+tjrO+efupoqu+Dl+1zpO6eg+tXsO9fqe5une1NuPBcrO+VfuqHiutjp+5Vs++Xfeqceelbru+ceemidemXfepXsvBNu/BlqO5ro+6XfuqfeelMv/FWtvBfru+bfup3me2dfOqCkuyfeuqgf+t2nO2Pieycf+pOvvF4l+yefOpRtO9Ts+9oou6MhepUs++beemMheqYe+lbre+beemdd+mbeemXfOl/kOxoo+6ceelhqu95lexxnO2FjOtgq++Ii+uWfuqDj+uPhep9k+yVgOptoO2deel4mO2GjOuGi+uRhOp5k+yieOpIv/GdeumLietUuPBmp+6Vgetso+5jq+5xn+5VtvCcfepQvfGFku1uou5pru9HvfCGiet0mex3lux6lOxpou1IvfCNheqhdelpou6FjOtRtfBHvvBoo+6XfemKiOtwne1OufB0me1qou6PhOp9kuyXfepPuPBLvPBqou6deel1mexlp+6JiuujdOhGv/GDkOybfeqWgOpgrO+afupIwfGIi+ukdumXgOpqpO6Rh+t/l+15mu1Wt/Bvou5atvBctPCcfep2nu2TfupLuvBiqO5+kOyPg+qfeuqPg+pZr++RgeqBkeuOhOqTgOqOhOphqu5ar+9/kuxwnO1jpu5asu9OuvCFjOuJjOtYs+9bse9fr++Dm+1jre9bse+DkOuMiuuLi+uXe+mbeOmZeulMufBip+6edelSs+96k+yTfupequ5unO2FiuuKhuqPgepKuvBNt/BVse9are9lpO5roO13luyNhOqdd+lGvfBIu/BYr+9/juuDjOuWfemgdOlPtfBooe19kOyZeemVfelRtO9bq+5yme2Sf+qHiOtTsu+EpUSsAAAA0HRSTlMABQcMEgkaNCoh/eonIxcR5mQsHhsSDvn37uzm07h5ZVRQSzQlHhYO/Pv69vbx7OTX1s/Nxsa+r6mkkI55dGheXlhRT0xDQjw6ODEx/Pj39/b08vDv7+Ld29rZ19LLw7u2trSyqKenpqSioZyalpKRi4OAfXx0ZmJfVzw4MB/7+/bs7Ovq5+bl5ePh4eHb2NfSzs7NzMbFuLixr66pnpqXlJCDgnpxb2xrZFBKSUdCPzr79u3s5+bk4+De1cXAqp+fnJmXlJCPiHBvblZSSklCDV7jnwAABPVJREFUWMPNmGdU01AUx9PSCpRZKSBLZCl7KCBbQBAQ994bBESmIkPce++999577z2A1u5Kp1iKTEU/+pKWoZyapukH/+e07+bem1/eve/lNA2kiYqziyHdyCpyTdWaSCtdoAxDFlRVVS0IMcSP0t/xVakd+nhRSfafga7AX/ZJOGdlT6fTK0POPvMCoz2umblur6ys9MqzhAiFq4G1HUfPLHvX1tbaOiL2BXtgh2i/mnnMpibbwpZy/ZuaBnTVFnXelskcEtV2uJr5y7ZYywodhELhS0Kbo3CIUOigXZWv3MGplu0cxKdyoXuUVvvdXy6/pf+nq5dc3quTFqyuIpHo71b38RaJXmNHdZrw/XuHOVhNAc7umFkFHI5HQQev8wiOx1usKOIUDmdCx9boAfcDItYb8SqDka/quGP2/mxHQ1XHPBh+BhhZcxkMv/nIBB030mFtjCIq28hgFGAscadYvIeILOcQJnOg7UDwpVzUMLE4lICJ5bpWLD6J3NIjRN4Pz+q/6y0SjXBGuj9IPA7bFjs3qG4pXCIhlOGRD8/PKpTBQCbaaVzdoH6YWPkSyWZ4H5WOqwMjLIOVdWtdYfpMieQkBhJywkzY6G/DfazaDZO4Nv2RVZFIwrCwwIncuQhrsTRd6TKbKF2MsM55cneSsdxAG7ieMbDhNrZ+rBviKrmmsgzMuRuwNN/A5ofNJcTK4PFmkcBoPBkYiKf7ph/mWHZrv0Ut+QnLZbL7J5xy78pkyxNU9cPX0VxnKBRzN6VJ9WGz2ZfBx+eUal12UxZh2RQxFOmm7io7NtC6vLzcOjC2JZgupZzBwDotlU40azkwjY3IiogjtQZnS6XdMLDesFiApUazWSwsrNMs1lZdsWLq69WzHtXXY2F1q66+46YuOL26S18MrL5dqlcZq4mRJ1d3ea85ynS6QnFAT100V6GYTtP4zs5QKGaZqQ2Tn/MUGT00ZB1byJts+o+42V7ewmOaoRJ8f64q+WeG8fqfvh81qnAvn5+LknOKz5+qSZVOg/nrjdEWZwt/sBM6ijBDJstEzZojk81A//k2vinQ4JIJwwTXO6NmUQWC2yaoWaQtAgEVNSuzuflea1uJpn/W32amNjcfQl3FYDY7FTmPlhh9ZNo2l3Yxi9Rw6kULMmKHs9nBemgrFNDYeMjUJTp8WoBPTU1j48H2Da+pqfEZMy2cmkgjA3sMDa31dmVl6wKGl7VoeFFrKN6u1TkmeFtZmR1aW12MKoAaGhoqKoaODgYHdtGqLsWNr6gw6mlkDUeRHLvOaKyR5UAjR+/KocZbkHOAPTQtzoRmEX8QDhwhJRdFpAEgnGSExoq/MX5XTnSiqsMmPb8AWY8aP3oobARaKDdE57iItMBRo9BYJBcawLQqseenNgUlt080uUiCsMkka8U3pVZkmUB4lXx8X1BQ0L7jSEX41YPUA/oPlXR0/9EknZCIkcvA+4llkUQdsKK8wJsAOt3LET/K0J85wCHPYQDTvxQ3q4+7vLcleCMgd++Dm3WY4+0MBmdvzmHcrFCGnysYSv3ET3CzwpR/ZlxX1oXhZs3jes4DQ4wnFww4ZWBO2U2ECOkUcwPcLEIKa0k/qGQJK4WAF4U816XoHYCfBfFLbyrP94Uvb6oepAM5DePz+cM+QLoQeYZAIMgkQDpR8rrGAGNIRzphVATpSqRYsiZpvwGWQOPia01htAAAAABJRU5ErkJggg==" alt="shadowrocket" style="width:30px; height: 30px; margin-right: 10px;">ShadowRocket
+</h1>
+<p style="text-align: center;"><a href="/airport"><span style="display: inline-block; animation: bellShake 0.5s infinite ease-in-out;">🔔</span>机场推荐</a></p>
+
+	<div style="display: flex; margin: 10px 0;" bis_skin_checked="1">
+  <span style="flex: 1; height: 1px; background-color: #0F9D58;"></span>
+  <span style="flex: 1; height: 1px; background-color: #F4B400;"></span>
+  <span style="flex: 1; height: 1px; background-color: #DB4437;"></span>
+  <span style="flex: 1; height: 1px; background-color: #4285F4;"></span>
+</div>
+<h2><p style="text-align: center;">
+<svg width="30" height="12" xmlns="http://www.w3.org/2000/svg"><g><rect rx="6" width="30" height="8" fill="#34A853"></rect></g></svg>
+配置</p></h2>
+    <div class="container" bis_skin_checked="1">
+    <a href="shadowrocket://install?module=https://whatshub.top/manual"><button class="myButton color-1">📚教程-Manual</button></a>
+<a href="shadowrocket://install?module=https://whatshub.top/config/shadowrocket_basic.conf"><button class="myButton color-3">⚙️配置文件</button></a>
+<a href="shadowrocket://install?module=https://whatshub.top/config/shadowrocket_lite.conf"><button class="myButton color-2">⚙️配置文件·轻量</button></a>
+
+    </div>
+<br>
+<h2><p style="text-align: center;">
+<svg width="30" height="12" xmlns="http://www.w3.org/2000/svg"><g><rect rx="6" width="30" height="8" fill="#4285f4"></rect></g></svg>
+模块</p></h2>
+<div class="search-bar" bis_skin_checked="1">
+  <input id="searchBar" type="text" placeholder="搜索 Search...">
+</div>
+<ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-4631656380634463" data-ad-slot="4496052669" data-ad-format="auto" data-full-width-responsive="true" data-adsbygoogle-status="done"><iframe id="aswift_0" style="height: 1px !important; max-height: 1px !important; max-width: 1px !important; width: 1px !important;"><iframe id="google_ads_frame0"></iframe></ins>
+<script>
+     (adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+<div id="searchResults" bis_skin_checked="1"></div>
+    <div class="container" bis_skin_checked="1">
+    <a href="shadowrocket://install?module=https://whatshub.top/module/4in1.module"><button class="myButton color-4">Four in One</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/bfs.module"><button class="myButton color-1">BingAI for Safari</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/adlite.module"><button class="myButton color-3">去开屏广告轻量版</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/startingad.module"><button class="myButton color-2">去开屏广告融合版</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/adultra.module"><button class="myButton color-4">去开屏广告融合版ultra</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/adultraplus.module"><button class="myButton color-1">去开屏广告融合版ultra+</button></a>
+	<a href="shadowrocket://install?module=https://whatshub.top/module/rumors.module"><button class="myButton color-3">今日辟谣</button></a>
+	<a href="shadowrocket://install?module=https://whatshub.top/module/hotoday.module"><button class="myButton color-2">今日平台热榜</button></a>
+	<a href="shadowrocket://install?module=https://whatshub.top/module/appsdoor.module"><button class="myButton color-4">AppStore限免APP</button></a>
+	<a href="shadowrocket://install?module=https://whatshub.top/module/movie.module"><button class="myButton color-1">热映电影资讯</button></a>
+	<a href="shadowrocket://install?module=https://whatshub.top/module/tv.module"><button class="myButton color-3">电视热度榜</button></a>
+	<a href="shadowrocket://install?module=https://whatshub.top/module/qm.module"><button class="myButton color-2">QQ音乐热歌榜</button></a>
+	<a href="shadowrocket://install?module=https://whatshub.top/module/nm.module"><button class="myButton color-4">网易云热歌榜</button></a>
+	<a href="shadowrocket://install?module=https://whatshub.top/module/km.module"><button class="myButton color-1">酷狗音乐热歌榜</button></a>
+	<a href="shadowrocket://install?module=https://whatshub.top/module/bb100.module"><button class="myButton color-3">Billboard Hot100</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/tianqi.module"><button class="myButton color-2">今日天气</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/rates.module"><button class="myButton color-4">今日汇率</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/crypto.module"><button class="myButton color-1">汇率·加密货币</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/book.module"><button class="myButton color-3">新书速递</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/histoday.module"><button class="myButton color-2">历史上的今天</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/accu.module"><button class="myButton color-4">accuweather解锁</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/AdBlock.module"><button class="myButton color-1">AdBlock</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/alarmy.module"><button class="myButton color-3">alarmy</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/aloha.module"><button class="myButton color-2">aloha</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/amj.module"><button class="myButton color-4">爱美剧</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/aosoft.module"><button class="myButton color-1">Background Eraser</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/appraven.module"><button class="myButton color-3">appraven</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/audiomack.module"><button class="myButton color-2">audiomack</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/b612.module"><button class="myButton color-4">b612相机</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/baiducloud.sgmodule"><button class="myButton color-1">百度云倍速</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/baimiao.module"><button class="myButton color-3">白描</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/bazaart.module"><button class="myButton color-2">bazaart</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/bdsp.module"><button class="myButton color-4">布丁锁屏</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/bedtime-fan.module"><button class="myButton color-1">bedtime fan</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/bili.module"><button class="myButton color-3">bilibili HD</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/biliad.module"><button class="myButton color-2">bilibili NoAD</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/Bodian.module"><button class="myButton color-4">波点音乐</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/boom.module"><button class="myButton color-1">BOOM</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/boxjs.sgmodule"><button class="myButton color-3">boxjs</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/caixin.module"><button class="myButton color-2">财新文章解锁</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/caiyun.module"><button class="myButton color-4">彩云天气</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/calculator.module"><button class="myButton color-1">计算器HD</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/camscanner.sgmodule"><button class="myButton color-3">扫描全能王</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/clarity.module"><button class="myButton color-2">克拉壁纸</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/colorwidgets.module"><button class="myButton color-4">colorwidgets</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/dailyyoga.module"><button class="myButton color-1">dailyyoga</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/dalanjing.module"><button class="myButton color-3">大蓝鲸</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/darkroom.module"><button class="myButton color-2">darkroom</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/dsbj.module"><button class="myButton color-4">读书笔记</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/dyd.module"><button class="myButton color-1">第一弹</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/egdd.module"><button class="myButton color-3">儿哥点点</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/ellabook.module"><button class="myButton color-2">ellabook</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/emby.sgmodule"><button class="myButton color-4">emby</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/emmo.module"><button class="myButton color-1">emmo</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/fabulous.module"><button class="myButton color-3">fabulous</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/fanqie.module"><button class="myButton color-2">番茄小说</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/fantastical.module"><button class="myButton color-4">fantastical</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/fimo.module"><button class="myButton color-1">fimo</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/grammarly.module"><button class="myButton color-3">grammarly</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/grow.module"><button class="myButton color-2">grow</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/hbxw.module"><button class="myButton color-4">烘焙小屋</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/HistoryPrice.sgmodule"><button class="myButton color-1">京东历史价格</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/htjzb.module"><button class="myButton color-3">海豚记账本</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/hyperweb.module"><button class="myButton color-2">hyperweb</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/ilovepdf.module"><button class="myButton color-4">ilovepdf</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/imuseum.module"><button class="myButton color-1">imuseum</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/invideo.module"><button class="myButton color-3">invideo</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/jibjab.module"><button class="myButton color-2">jibjab</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/judou.module"><button class="myButton color-4">句读</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/kika.module"><button class="myButton color-1">kika</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/kuwo-unlock.sgmodule"><button class="myButton color-3">酷我音乐</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/lightroom.module"><button class="myButton color-2">lightroom</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/lls.module"><button class="myButton color-4">流利说·阅读</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/mdmanhua.module"><button class="myButton color-1">免耽漫画</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/meipian.module"><button class="myButton color-3">美篇</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/meistertask.module"><button class="myButton color-2">meistertask</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/meituxx.module"><button class="myButton color-4">美图秀秀</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/mht.module"><button class="myButton color-1">漫画台</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/mix-camera.module"><button class="myButton color-3">mix-camera</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/mklwt.module"><button class="myButton color-2">马卡龙玩图</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/mojo.module"><button class="myButton color-4">mojo</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/molycam.module"><button class="myButton color-1">molycam</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/musixmatch.module"><button class="myButton color-3">musixmatch</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/myfitnesspal.module"><button class="myButton color-2">myfitnesspal</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/myplate.module"><button class="myButton color-4">myplate</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/netflix_rating.sgmodule"><button class="myButton color-1">奈飞评分+双字幕</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/nicegram.module"><button class="myButton color-3">nicegram</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/notability.module"><button class="myButton color-2">notability</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/now.module"><button class="myButton color-4">Now冥想</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/nybz.module"><button class="myButton color-1">奶由壁纸</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/oldroll.module"><button class="myButton color-3">oldroll</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/peak.module"><button class="myButton color-2">peak</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/peiyinxiu.module"><button class="myButton color-4">配音秀</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/photomath.module"><button class="myButton color-1">photomath</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/photoshop.module"><button class="myButton color-3">photoshop Express</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/piccollage.module"><button class="myButton color-2">piccollage</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/picsart.module"><button class="myButton color-4">picsart</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/pillow.module"><button class="myButton color-1">pillow</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/pixelcut.module"><button class="myButton color-3">pixelcut</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/pocketlists.module"><button class="myButton color-2">pocket lists</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/polarr.module"><button class="myButton color-4">polarr</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/ppx.module"><button class="myButton color-1">皮皮虾</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/qifu.module"><button class="myButton color-3">起伏</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/qmxs.module"><button class="myButton color-2">七猫小说</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/multisearch.module"><button class="myButton color-4">多重搜索</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/rrsp.module"><button class="myButton color-1">人人视频</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/sgsz.module"><button class="myButton color-3">时光手账</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/shadowlinkVPN.module"><button class="myButton color-2">shadowlinkVPN</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/smallpdf.module"><button class="myButton color-4">smallpdf</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/smwd.module"><button class="myButton color-1">石墨文档</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/sndd.module"><button class="myButton color-3">少年得到</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/soundcloud.module"><button class="myButton color-2">soundcloud</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/spotifyVIP.module"><button class="myButton color-4">spotify</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/substore.sgmodule"><button class="myButton color-1">substore</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/symbolab.module"><button class="myButton color-3">symbolab</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/tangerine.module"><button class="myButton color-2">tangerine</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/tenpercent.module"><button class="myButton color-4">tenpercent</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/thunder.module"><button class="myButton color-1">迅雷</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/tokcam.module"><button class="myButton color-3">tok cam</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/tutu.module"><button class="myButton color-2">图图记账</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/vista.module"><button class="myButton color-4">vista看天下</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/vsco.module"><button class="myButton color-1">vsco</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/wallcraft.module"><button class="myButton color-3">wallcraft</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/wdqd.module"><button class="myButton color-2">豌豆清单</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/wechatad.module"><button class="myButton color-4">微信公众号去广告</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/weiboad.module"><button class="myButton color-1">微博去广告</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/wfw.module"><button class="myButton color-3">workout for women</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/widgetsmith.module"><button class="myButton color-2">widgetsmith</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/wnbsq.module"><button class="myButton color-4">万能变声器</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/wnds.module"><button class="myButton color-1">网易蜗牛读书</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/WPS.module"><button class="myButton color-3">WPS</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/xcz.module"><button class="myButton color-2">西窗烛</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/xiaoying.module"><button class="myButton color-4">小影</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/xjsp.module"><button class="myButton color-1">香蕉视频</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/xmind.module"><button class="myButton color-3">xmind思维导图</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/xmlyad.module"><button class="myButton color-2">喜马拉雅去广告</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/xxg.module"><button class="myButton color-4">小习惯</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/xyts.module"><button class="myButton color-1">新语听书</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/ydybj.module"><button class="myButton color-3">有道云笔记</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/yifeigif.module"><button class="myButton color-2">亦飞GIF</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/yitian.module"><button class="myButton color-4">一甜相机</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/yiyan.module"><button class="myButton color-1">一言</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/yunting.module"><button class="myButton color-3">云听</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/ywqpy.module"><button class="myButton color-2">语文趣配音</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/zebra.module"><button class="myButton color-4">斑马海报</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/ZhihuBlock.sgmodule"><button class="myButton color-1">知乎去广告</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/ZhihuOpt.sgmodule"><button class="myButton color-3">知乎优化</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/zhitiao.module"><button class="myButton color-2">纸条</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/zjsg.module"><button class="myButton color-4">指尖时光</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/zymk.module"><button class="myButton color-1">知音漫客</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/spotify_lyric.module"><button class="myButton color-3">Spotify歌词翻译</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/nfc.module"><button class="myButton color-2">NFC门禁卡公交卡</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/stsq.module"><button class="myButton color-4">搜图神器</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/caiyun_cron.module"><button class="myButton color-1">彩云天气通知任务</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/calm.module"><button class="myButton color-3">Calm解锁</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/https.module"><button class="myButton color-2">HTTPS抓包</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/ssa.module"><button class="myButton color-4">SSA丝社</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/xxyq.module"><button class="myButton color-1">小小优趣</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/hyxc.module"><button class="myButton color-3">幻影相册</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/jsgx.module"><button class="myButton color-2">精塾国学</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/prettyup.module"><button class="myButton color-4">PrettyUp</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/weibolitead.module"><button class="myButton color-1">微博lite去广告</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/bili-region.module"><button class="myButton color-3">BILI自动地区</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/cubox.sgmodule"><button class="myButton color-2">CUBOX</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/pandora.module"><button class="myButton color-4">pandora</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/wechatread.module"><button class="myButton color-1">微信阅读积分兑换</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/ly.module"><button class="myButton color-3">来音智能陪练</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/xzj.module"><button class="myButton color-2">熊掌记</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/rq.module"><button class="myButton color-4">如期</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/ceo.module"><button class="myButton color-1">CEO周课</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/fileball.module"><button class="myButton color-3">Fileball</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/1blocker.module"><button class="myButton color-2">1blocker</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/ai.module"><button class="myButton color-4">AI换脸秀</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/proknockout.module"><button class="myButton color-1">proknockout</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/qnhb.module"><button class="myButton color-3">青柠海报</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/faintv.module"><button class="myButton color-2">Faintv</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/wxts.module"><button class="myButton color-4">微信听书</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/rmrb.module"><button class="myButton color-1">人民日报去广告</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/aqc.module"><button class="myButton color-3">爱企查</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/wxds.module"><button class="myButton color-2">微信读书免费卡解锁</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/chic.module"><button class="myButton color-4">chic</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/ydcd.module"><button class="myButton color-1">有道词典</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/wscsds.module"><button class="myButton color-3">网速测试大师</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/wsgj.module"><button class="myButton color-2">网速管家</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/efekt.module"><button class="myButton color-4">EFEKT美易</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/doc.module"><button class="myButton color-1">WPS稻壳会员</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/mksp.module"><button class="myButton color-3">米克锁屏</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/absqgs.module"><button class="myButton color-2">阿布睡前故事</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/collart.module"><button class="myButton color-4">collart</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/bsxm.module"><button class="myButton color-1">博商小麦</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/memrise.module"><button class="myButton color-3">MEMRISE</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/duitang.module"><button class="myButton color-2">堆糖</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/flomo.module"><button class="myButton color-4">Flomo</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/aptv.module"><button class="myButton color-1">APTV</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/cp.module"><button class="myButton color-3">香哈菜谱大全</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/cxs.module"><button class="myButton color-2">长相思</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/dzqj.module"><button class="myButton color-4">电子请柬制作</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/hyxj.module"><button class="myButton color-1">黄油相机</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/lingokids.module"><button class="myButton color-3">Lingokids</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/bdwk.module"><button class="myButton color-2">百度文库</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/craft.module"><button class="myButton color-4">Craft</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/panda.module"><button class="myButton color-1">Panda小组件</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/keep.module"><button class="myButton color-3">Keep</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/documents.module"><button class="myButton color-2">Documents</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/planny.module"><button class="myButton color-4">Planny</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/ego.module"><button class="myButton color-1">Ego Reader</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/jssmy.module"><button class="myButton color-3">极速扫描仪</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/zjbj.module"><button class="myButton color-2">指尖笔记</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/qj.module"><button class="myButton color-4">钱迹</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/agenda.module"><button class="myButton color-1">Agenda</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/agenda.module"><button class="myButton color-3">即刻运动</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/dayone.module"><button class="myButton color-2">Day One</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/usage.module"><button class="myButton color-4">Usage</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/mdsz.module"><button class="myButton color-1">谜底时钟</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/moneythings.module"><button class="myButton color-3">MoneyThings</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/sjsmy.module"><button class="myButton color-2">手机扫描仪</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/sorted.module"><button class="myButton color-4">Sorted</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/jjyc.module"><button class="myButton color-1">尽简衣橱</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/klx.module"><button class="myButton color-3">看理想</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/mbdt.module"><button class="myButton color-2">目标地图</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/ptj.module"><button class="myButton color-4">拼图酱</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/xrk.module"><button class="myButton color-1">向日葵阅读</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/kprj.module"><button class="myButton color-3">卡片日记</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/ljtq.module"><button class="myButton color-2">莉景天气</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/motivation.module"><button class="myButton color-4">Motivation</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/pdfviewer.module"><button class="myButton color-1">PDF Viewer</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/percento.module"><button class="myButton color-3">Percento</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/pixelance.module"><button class="myButton color-2">Pixelance</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/retake.module"><button class="myButton color-4">Retake</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/sc.module"><button class="myButton color-1">色采</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/smbq.module"><button class="myButton color-3">闪萌表情</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/ypjj.module"><button class="myButton color-2">音频剪辑</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/varlens.module"><button class="myButton color-4">Varlens</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/ymjz.module"><button class="myButton color-1">一木记账</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/drafts.module"><button class="myButton color-3">Drafts</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/ddsyxj.module"><button class="myButton color-2">叮叮水印相机</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/emote.module"><button class="myButton color-4">Emote</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/lgzj.module"><button class="myButton color-1">灵敢足迹</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/seven.module"><button class="myButton color-3">7分钟HIIT运动</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/smxcgj.module"><button class="myButton color-2">私密相册管家</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/fnv.module"><button class="myButton color-4">FitnessView</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/todo.module"><button class="myButton color-1">TODO清单</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/tpp.module"><button class="myButton color-3">淘票票评分</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/ttd.module"><button class="myButton color-2">天天豆</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/ky.module"><button class="myButton color-4">咖映</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/vcus.module"><button class="myButton color-1">VCUS</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/arpdfbj.module"><button class="myButton color-3">傲软PDF编辑</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/artp.module"><button class="myButton color-2">傲软投屏</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/hx.module"><button class="myButton color-4">幻休</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/hyzm.module"><button class="myButton color-1">绘影字幕</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/hzk.module"><button class="myButton color-3">汇中考</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/iscreen.module"><button class="myButton color-2">iScreen</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/xzjhz.module"><button class="myButton color-4">小组件盒子</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/zt.module"><button class="myButton color-1">佐糖</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/fyjh.module"><button class="myButton color-3">飞鱼计划</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/gql.module"><button class="myButton color-2">过期啦</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/nt.module"><button class="myButton color-4">乃糖小组件</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/ysyk.module"><button class="myButton color-1">一书一课</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/cdzs.module"><button class="myButton color-3">充电助手</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/dsj.module"><button class="myButton color-2">电视家</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/endel.module"><button class="myButton color-4">Endel</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/gzrj.module"><button class="myButton color-1">格至日记</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/gddt.module"><button class="myButton color-3">高德地图去广告</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/hsfs.module"><button class="myButton color-2">好事发生</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/jianxun.module"><button class="myButton color-4">简讯</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/kepai.module"><button class="myButton color-1">可拍</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/lifeviewer.module"><button class="myButton color-3">Lifeviewer</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/relens.module"><button class="myButton color-2">Relens</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/vivacut.module"><button class="myButton color-4">Vivacut</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/watchout.module"><button class="myButton color-1">Watchout</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/whqsy.module"><button class="myButton color-3">无痕去水印</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/yjhl.module"><button class="myButton color-2">一键换脸</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/styleart.module"><button class="myButton color-4">Styleart</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/7dong.module"><button class="myButton color-1">7动</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/lifeindex.module"><button class="myButton color-3">生活指数定时提醒</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/oil.module"><button class="myButton color-2">油价提醒</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/hbgc.module"><button class="myButton color-4">海报工厂</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/wdfq.module"><button class="myButton color-1">我的番茄</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/fomz.module"><button class="myButton color-3">FoMz</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/rzxj.module"><button class="myButton color-2">日杂相机</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/gscdq.module"><button class="myButton color-4">古诗词大全</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/mondly.module"><button class="myButton color-1">Mondly</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/mtywj.module"><button class="myButton color-3">猫头鹰文件</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/YouTubeAd.sgmodule"><button class="myButton color-2">YouTube去广告</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/hbetgs.module"><button class="myButton color-4">汉堡儿童故事</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/iconkiller.module"><button class="myButton color-1">iconKiller</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/yczjz.module"><button class="myButton color-3">一寸证件照</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/zhsck.module"><button class="myButton color-2">中华诗词库</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/ztc.module"><button class="myButton color-4">字体册</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/peiyin.module"><button class="myButton color-1">配音</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/adguard.module"><button class="myButton color-3">AdGuard</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/aliyun.module"><button class="myButton color-2">阿里云盘签到</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/atc.module"><button class="myButton color-4">爱题词</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/beelinguapp.module"><button class="myButton color-1">Beelinguapp</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/danbo.module"><button class="myButton color-3">蛋啵</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/happydays.module"><button class="myButton color-2">Happy:Days</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/spark.module"><button class="myButton color-4">Spark Mail</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/vn.module"><button class="myButton color-1">VN视频剪辑</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/xjd.module"><button class="myButton color-3">小决定</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/artwidget.module"><button class="myButton color-2">Art Widget</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/bhjk.module"><button class="myButton color-4">薄荷健康</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/bzdsrf.module"><button class="myButton color-1">不折叠输入法</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/cstk.module"><button class="myButton color-3">才士题库</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/dangran.module"><button class="myButton color-2">当燃</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/djxs.module"><button class="myButton color-4">得间小说</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/dssy.module"><button class="myButton color-1">大神水印</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/dxyk.module"><button class="myButton color-3">丁香医考</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/dygdj.module"><button class="myButton color-2">电音阁DJ解锁</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/fanju.module"><button class="myButton color-4">饭橘减肥</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/fenbeiyi.module"><button class="myButton color-1">分贝仪</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/gjlahs.module"><button class="myButton color-3">高级恋爱话术</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/hljx.module"><button class="myButton color-2">婚礼精选</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/huashijie.module"><button class="myButton color-4">画世界</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/hxxzj.module"><button class="myButton color-1">呼吸 小组件</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/iscreen.module"><button class="myButton color-3">iScreen</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/jianying.module"><button class="myButton color-2">简影</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/kaixinpai.module"><button class="myButton color-4">开心拍</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/kjxyy.module"><button class="myButton color-1">看剧学英语</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/koan.module"><button class="myButton color-3">Koan 提问日记</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/lanjiyin.module"><button class="myButton color-2">蓝基因</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/luv.module"><button class="myButton color-4">lUV-万能小组件</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/mint.module"><button class="myButton color-1">薄荷壁纸</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/moji.module"><button class="myButton color-3">MOJi辞書</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/qingtu.module"><button class="myButton color-2">轻图</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/quling.module"><button class="myButton color-4">趣铃</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/qupai.module"><button class="myButton color-1">趣拍</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/quyan.module"><button class="myButton color-3">趣颜</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/silimini.module"><button class="myButton color-2">Silimini</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/sogreat.module"><button class="myButton color-4">You're So Great</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/touchretouch.module"><button class="myButton color-1">TouchRetouch</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/weatherfit.module"><button class="myButton color-3">Weather Fit</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/wink.module"><button class="myButton color-2">Wink</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/wzbz.module"><button class="myButton color-4">问真八字</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/xggj.module"><button class="myButton color-1">习惯管家</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/xjzz.module"><button class="myButton color-3">小鸡专注</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/xlsw.module"><button class="myButton color-2">小鹿声文</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/xmsm.module"><button class="myButton color-4">熊猫睡眠</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/xxbq.module"><button class="myButton color-1">小熊便签</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/xxlp.module"><button class="myButton color-3">小熊录屏</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/ydjl.module"><button class="myButton color-2">阅读记录</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/ytyd.module"><button class="myButton color-4">一天阅读</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/yuanqi.module"><button class="myButton color-1">元气桌面壁纸</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/zhrl.module"><button class="myButton color-3">中华日历</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/zkggs.module"><button class="myButton color-2">站酷高高手</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/aihh.module"><button class="myButton color-4">AI绘画</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/aisjs.module"><button class="myButton color-1">Al设计师</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/aitxg.module"><button class="myButton color-3">AI头像馆</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/bmxj.module"><button class="myButton color-2">变美相机</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/bqg.module"><button class="myButton color-4">笔趣阁</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/ctpj.module"><button class="myButton color-1">长图拼接</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/dcgj.module"><button class="myButton color-3">电池管家</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/dcxc.module"><button class="myButton color-2">多彩相册</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/deepfaker.module"><button class="myButton color-4">DeepFaker换脸</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/dsy.module"><button class="myButton color-1">倒数鸭</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/fkbdc.module"><button class="myButton color-3">疯狂背单词</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/foodie.module"><button class="myButton color-2">Foodie</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/ghzw.module"><button class="myButton color-4">稿好作文</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/guitartuner.module"><button class="myButton color-1">GuitarTuner</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/hlai.module"><button class="myButton color-3">换脸 AI黑科技</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/hxlx.module"><button class="myButton color-2">Lungy:呼吸练习</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/imagex.module"><button class="myButton color-4">imageX-Ai绘画</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/jpds.module"><button class="myButton color-1">解剖大师</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/kailian.module"><button class="myButton color-3">开练</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/kaipai.module"><button class="myButton color-2">开拍</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/ldgdw.module"><button class="myButton color-4">律动鼓点舞</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/lingvist.module"><button class="myButton color-1">Lingvist</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/mindkit.module"><button class="myButton color-3">mindkit</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/motu.module"><button class="myButton color-2">魔图</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/myfyq.module"><button class="myButton color-4">猫语翻译器</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/peakvisor.module"><button class="myButton color-1">PeakVisor</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/pure.module"><button class="myButton color-3">Pure记账</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/rsm.module"><button class="myButton color-2">软眠眠</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/sharp.module"><button class="myButton color-4">Sharp Al</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/sketchar.module"><button class="myButton color-1">Sketchar</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/soul.module"><button class="myButton color-3">Soul</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/spbj.module"><button class="myButton color-2">视频编辑</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/spjjsq.module"><button class="myButton color-4">视频剪辑神器</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/ssti.module"><button class="myButton color-1">刷刷题</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/ttts.module"><button class="myButton color-3">天天跳绳</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/wozi.module"><button class="myButton color-2">喔知wozi背单词</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/wpzn.module"><button class="myButton color-4">物品指南</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/xbst.module"><button class="myButton color-1">小包搜题</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/xzwsdt.module"><button class="myButton color-3">新知卫星地图</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/youshi.module"><button class="myButton color-2">有诗</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/yzqds.module"><button class="myButton color-4">柚子轻断食</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/znz.module"><button class="myButton color-1">指南针GPS</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/atlcz.module"><button class="myButton color-3">凹凸啦查妆</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/axtq.module"><button class="myButton color-2">安心天气</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/azj.module"><button class="myButton color-4">爱证件</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/bgds.module"><button class="myButton color-1">表格大师</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/cjjl.module"><button class="myButton color-3">超级简历</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/clica.module"><button class="myButton color-2">Clica</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/cpp.module"><button class="myButton color-4">车票票</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/currency.module"><button class="myButton color-1">Currency</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/czz.module"><button class="myButton color-3">查妆妆</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/dftz.module"><button class="myButton color-2">倒放挑战</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/dgjsj.module"><button class="myButton color-4">电工计算器</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/dofm.module"><button class="myButton color-1">Dofm</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/duoman.module"><button class="myButton color-3">多漫</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/dvd.module"><button class="myButton color-2">DVD相机</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/flowkey.module"><button class="myButton color-4">Flowkey钢琴</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/fyqnw.module"><button class="myButton color-1">翻译全能王</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/gdrj.module"><button class="myButton color-3">工地记工</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/gglqm.module"><button class="myButton color-2">瓜瓜龙启蒙</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/gsfc.module"><button class="myButton color-4">故事飞船</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/guga.module"><button class="myButton color-1">GUGA一超级白板</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/hkzx.module"><button class="myButton color-3">慧考智学</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/htetyy.module"><button class="myButton color-2">海豚儿童英语</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/jfsp.module"><button class="myButton color-4">减脂食谱</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/jgjsq.module"><button class="myButton color-1">建工计算器</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/jihu.module"><button class="myButton color-3">记乎</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/jjrj.module"><button class="myButton color-2">极简日记</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/jjsz.module"><button class="myButton color-4">极简时钟</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/jybg.module"><button class="myButton color-1">简易表格</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/jzdj.module"><button class="myButton color-3">九州短剧</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/kuaiying.module"><button class="myButton color-2">快影</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/laika.module"><button class="myButton color-4">徕卡水印相机</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/lgtcq.module"><button class="myButton color-1">灵敢提词器</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/ljy.module"><button class="myButton color-3">蓝基因</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/lsdj.module"><button class="myButton color-2">乐刷短剧</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/lyj.module"><button class="myButton color-4">录音机</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/lyzyb.module"><button class="myButton color-1">录音专业版</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/mjc.module"><button class="myButton color-3">梦剧场</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/onetodo.module"><button class="myButton color-2">OneTodo</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/paike.module"><button class="myButton color-4">派客</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/photoroom.module"><button class="myButton color-1">PhotoRoom</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/pthcs.module"><button class="myButton color-3">普通话测试</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/qbbj.module"><button class="myButton color-2">千本笔记</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/qlfxq.module"><button class="myButton color-4">情侣飞行棋</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/qmxfs.module"><button class="myButton color-1">全民幸福社</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/rwws.module"><button class="myButton color-3">瑞网微视</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/sgx.module"><button class="myButton color-2">时光序</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/sjthly.module"><button class="myButton color-4">手机通话录音机</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/smartai.module"><button class="myButton color-1">Smart Al</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/soda.module"><button class="myButton color-3">SODA相机</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/thly.module"><button class="myButton color-2">通话录音</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/tljp.module"><button class="myButton color-4">套路键盘</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/toonme.module"><button class="myButton color-1">ToonMe卡通头像</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/wakeyj.module"><button class="myButton color-3">Wake瑜伽</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/wnrjb.module"><button class="myButton color-2">五年日记本</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/wnyd.module"><button class="myButton color-4">万源阅读</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/xblxsx.module"><button class="myButton color-1">小伴龙学数学</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/xxyh.module"><button class="myButton color-3">小熊油耗</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/xykk.module"><button class="myButton color-2">小鹦看看</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/yase.module"><button class="myButton color-4">亚瑟浏览器</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/yjt2.module"><button class="myButton color-1">易截图2</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/ykb.module"><button class="myButton color-3">医考帮</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/yqqc.module"><button class="myButton color-2">一起欺词</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/ywnrj.module"><button class="myButton color-4">一万年日记</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/zjzgqb.module"><button class="myButton color-1">证件照高清版</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/zmjh.module"><button class="myButton color-3">朝暮计划</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/znspkt.module"><button class="myButton color-2">智能视频抠图</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/znzdw.module"><button class="myButton color-4">指南针定位</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/ztbl.module"><button class="myButton color-1">真题伴侣</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/zxhdmx.module"><button class="myButton color-3">真心话大冒险</button></a>
+    <a href="shadowrocket://install?module=https://whatshub.top/module/zztx.module"><button class="myButton color-2">杂志天下</button></a>
+ </div>
+
+<script>const buttons = document.querySelectorAll('.myButton');
+const pageType = document.body.dataset.page || (() => { throw new Error('No data-page attribute found on <body>'); })();
+const isIOS = /iP(hone|ad|od)/.test(navigator.userAgent);
+const buttonIndex = new Map([...buttons].map(b => [b, { text: b.textContent.trim().toLowerCase(), parent: b.parentElement.tagName === 'A' ? b.parentElement : b }]));
+const handleClick = (link, element, type) => {
+    const text = element.textContent.trim();
+    const schemes = {
+        sh: { check: ['whatshub.top/config/', 'whatshub.top/module/'], ios: l => l.includes('whatshub.top/config/') ? `shadowrocket://config/add/${l}` : `shadowrocket://install?module=${l}` },
+        st: { check: ['whatshub.top/config/', 'whatshub.top/stoverride/'], ios: l => l.includes('whatshub.top/config/') ? `https://link.stash.ws/install-config/${l.replace(/^https?:\/\//, '')}` : `https://link.stash.ws/install-override/${l.replace(/^https?:\/\//, '')}` },
+        qu: { check: ['whatshub.top/rewrite/'], ios: l => l.split('.').pop().toLowerCase() === 'json' ? `quantumult-x:///ui?module=gallery&type=task&action=add&content=["${l}"]` : `quantumult-x:///add-resource?remote-resource={"rewrite_remote":["${l}"]}` },
+        lo: { check: ['whatshub.top/config/', 'whatshub.top/plugin/'], ios: l => l.includes('whatshub.top/plugin/') ? `loon://import?plugin=${encodeURIComponent(l)}` : l }
+    };
+    const scheme = schemes[type];
+    if (scheme) {
+        const needsCopy = scheme.check.some(c => link.includes(c));
+        isIOS ? window.location.href = needsCopy ? scheme.ios(link) : link : needsCopy ? copyToClipboard(link, element, text) : window.location.href = link;
+    } else if (type === 'cp') copyToClipboard(link, element, text);
+    else if (type === 'tr') window.location.href = link;
+    else if (type !== 'in') throw new Error(`Invalid page type: ${type}`);
+};
+const copyToClipboard = async (link, element, text) => {
+    const copy = async () => navigator.clipboard?.writeText(link) || (document.execCommand("copy", false, (t => (t = document.createElement("textarea"), t.value = link, document.body.appendChild(t), t.select(), t))()));
+    try {
+        await copy();
+        element.textContent = "✅链接已复制";
+        setTimeout(() => element.textContent = text, 1000);
+    } catch (err) {
+        console.error('复制失败:', err);
+        const temp = document.createElement("textarea");
+        temp.value = link;
+        document.body.appendChild(temp);
+        temp.select();
+        document.execCommand("copy");
+        document.body.removeChild(temp);
+        element.textContent = "✅链接已复制";
+        setTimeout(() => element.textContent = text, 1000);
+    }
+};
+const shuffleArray = arr => { for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [arr[i], arr[j]] = [arr[j], arr[i]]; } };
+const assignRandomClasses = buttons => {
+    const classes = ['color-1', 'color-2', 'color-3', 'color-4'];
+    shuffleArray(classes);
+    buttons.forEach((b, i) => b.classList.add(classes[i % 4]));
+};
+const debounce = (fn, wait) => {
+    let t;
+    return (...args) => (clearTimeout(t), t = setTimeout(() => fn(...args), wait));
+};
+const initSearch = buttons => {
+    const searchBar = document.getElementById("searchBar");
+    if (!searchBar) return;
+    searchBar.addEventListener("input", debounce(() => {
+        const keyword = searchBar.value.trim().toLowerCase();
+        requestAnimationFrame(() => buttonIndex.forEach(({ text, parent }) => parent.style.display = text.includes(keyword) ? 'block' : 'none'));
+    }, 300));
+};
+const bindEvents = () => document.addEventListener('click', e => {
+    const target = e.target.closest('.myButton[data-href], .container a .myButton');
+    if (target) {
+        e.preventDefault();
+        handleClick(target.dataset.href || target.closest('a').getAttribute('href'), target, pageType);
+    }
+});
+(() => {
+    assignRandomClasses(buttons);
+    bindEvents();
+    initSearch(buttons);
+})();</script>
+<ins class="adsbygoogle" style="display:block" data-ad-format="autorelaxed" data-ad-client="ca-pub-4631656380634463" data-ad-slot="6352893966"></ins>
+<script>
+     (adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+  <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'943531e13da35f69',t:'MTc0Nzg0MjI2My4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><iframe height="1" width="1" style="position: absolute; top: 0px; left: 0px; border: none; visibility: hidden;"></iframe><script defer="" src="https://static.cloudflareinsights.com/beacon.min.js/vcd15cbe7772f49c399c6a5babf22c1241717689176015" integrity="sha512-ZpsOmlRQV6y907TI0dKBHq9Md29nnaEIPlkf84rnaERnq6zvWvPUqr2ft8M1aS28oN72PdrCzSjY4U6VaAw1EQ==" data-cf-beacon="{&quot;rayId&quot;:&quot;943531e13da35f69&quot;,&quot;version&quot;:&quot;2025.4.0-1-g37f21b1&quot;,&quot;r&quot;:1,&quot;token&quot;:&quot;0e67592eea2d4eedb9b022665ac4d5c8&quot;,&quot;serverTiming&quot;:{&quot;name&quot;:{&quot;cfExtPri&quot;:true,&quot;cfL4&quot;:true,&quot;cfSpeedBrain&quot;:true,&quot;cfCacheStatus&quot;:true}}}" crossorigin="anonymous"></script>
+
+<savior-host style="all: unset; position: absolute; top: 0; left: 0; z-index: 99999999999999; display: block !important; overflow: unset"></savior-host><en2vi-host class="corom-element" version="3" style="all: initial; position: absolute; top: 0; left: 0; right: 0; height: 0; margin: 0; text-align: left; z-index: 10000000000; pointer-events: none; border: none; display: block"></en2vi-host><savior-host style="all: unset; position: absolute; top: 0; left: 0; z-index: 99999999999999; display: block !important; overflow: unset"></savior-host></body>
